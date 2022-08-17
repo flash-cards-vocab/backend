@@ -1,0 +1,22 @@
+package user_repository
+
+import (
+	"github.com/flash-cards-vocab/backend/entity"
+	"github.com/google/uuid"
+)
+
+type User struct {
+	Id       uuid.UUID `gorm:"primary_key;column:id"`
+	Name     string    `gorm:"column:name"`
+	Email    string    `gorm:"column:email"`
+	Password string    `gorm:"column:password"`
+}
+
+func (u *User) ToEntity() *entity.User {
+	return &entity.User{
+		Id:       u.Id,
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
+	}
+}
