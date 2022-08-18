@@ -46,8 +46,7 @@ func (h *handlerUser) Login(c *gin.Context) {
 	// if err == nil {
 	// 	c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 	// }
-	// c.Cookie("")
-	var loginUserData entity.User
+	var loginUserData entity.UserLogin
 	err := c.ShouldBindJSON(&loginUserData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})

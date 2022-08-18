@@ -10,16 +10,16 @@ import (
 )
 
 type Claims struct {
-	Email string `json:"email"`
 	ID    string `json:"id"`
+	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
 func GenerateJWTToken(user *entity.User) (string, error) {
 	// Register the JWT claims, which includes the username and expiry time
 	claims := &Claims{
-		Email: user.Email,
 		ID:    user.Id.String(),
+		Email: user.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},
@@ -29,7 +29,9 @@ func GenerateJWTToken(user *entity.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Register the JWT string
-	tokenString, err := token.SignedString([]byte("TODO: REPLACE THIS STRING WITH LEGIT SECRET CODE"))
+	tokenString, err := token.SignedString([]byte(
+		"TODO: REPLACE THIS STRING WITH LEGIT SECRET CODE",
+	))
 	if err != nil {
 		return "", err
 	}

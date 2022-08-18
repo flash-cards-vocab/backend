@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	collection_usecase "github.com/flash-cards-vocab/backend/app/usecase/collection"
+	"github.com/flash-cards-vocab/backend/pkg/helpers"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -18,12 +19,12 @@ func NewCollectionHandler(collection_uc collection_usecase.UseCase) RestCollecti
 }
 
 func (h *handlerCollection) GetMyCollections(c *gin.Context) {
-	paramId := c.Param("user_id")
-	user_id, err := uuid.Parse(paramId)
-	if err == nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
 	}
-	data, err := h.collection_uc.GetMyCollections(user_id)
+
+	data, err := h.collection_uc.GetMyCollections(user_ctx.UserId)
 	if err == nil {
 		c.JSON(http.StatusOK, SuccessResponse{Data: data})
 	} else {
@@ -40,13 +41,12 @@ func (h *handlerCollection) LikeCollectionById(c *gin.Context) {
 	if err == nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 	}
-	paramId = c.Param("user_id")
-	user_id, err := uuid.Parse(paramId)
-	if err == nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
 	}
 
-	err = h.collection_uc.LikeCollectionById(id, user_id)
+	err = h.collection_uc.LikeCollectionById(id, user_ctx.UserId)
 	if err == nil {
 		c.JSON(http.StatusOK, SuccessResponse{"Collection Liked"})
 	} else {
@@ -63,13 +63,12 @@ func (h *handlerCollection) DislikeCollectionById(c *gin.Context) {
 	if err == nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 	}
-	paramId = c.Param("user_id")
-	user_id, err := uuid.Parse(paramId)
-	if err == nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
 	}
 
-	err = h.collection_uc.DislikeCollectionById(id, user_id)
+	err = h.collection_uc.DislikeCollectionById(id, user_ctx.UserId)
 	if err == nil {
 		c.JSON(http.StatusOK, SuccessResponse{"Collection Disliked"})
 	} else {
@@ -86,13 +85,12 @@ func (h *handlerCollection) ViewCollectionById(c *gin.Context) {
 	if err == nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 	}
-	paramId = c.Param("user_id")
-	user_id, err := uuid.Parse(paramId)
-	if err == nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
 	}
 
-	err = h.collection_uc.ViewCollectionById(id, user_id)
+	err = h.collection_uc.ViewCollectionById(id, user_ctx.UserId)
 	if err == nil {
 		c.JSON(http.StatusOK, SuccessResponse{"Collection Viewed"})
 	} else {
