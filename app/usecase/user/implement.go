@@ -181,7 +181,7 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 // }
 
 // Login user, returns user model with jwt token
-func (uc *usecase) Login(ctx context.Context, user entity.User) (*entity.UserWithToken, error) {
+func (uc *usecase) Login(ctx context.Context, user entity.UserLogin) (*entity.UserWithToken, error) {
 	// span, ctx := opentracing.StartSpanFromContext(ctx, "authUC.Login")
 	// defer span.Finish()
 

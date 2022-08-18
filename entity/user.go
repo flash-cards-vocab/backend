@@ -19,6 +19,11 @@ type UserWithToken struct {
 	Token string
 }
 
+type UserLogin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func (u *User) HashEncryptPassword() error {
 	encryptedPwd, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {

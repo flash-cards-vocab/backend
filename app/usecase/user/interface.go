@@ -15,5 +15,5 @@ var ErrForbiddenSelfRequest = errors.New("Self request is forbidden")
 
 type UseCase interface {
 	Register(ctx context.Context, user entity.User) (*entity.UserWithToken, error)
-	Login(ctx context.Context, user entity.User) (*entity.UserWithToken, error)
+	Login(ctx context.Context, user entity.UserLogin) (*entity.UserWithToken, error)
 }
