@@ -1,17 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
+	"cloud.google.com/go/storage"
+	card_uc "github.com/flash-cards-vocab/backend/app/usecase/card"
 	collection_uc "github.com/flash-cards-vocab/backend/app/usecase/collection"
 	user_uc "github.com/flash-cards-vocab/backend/app/usecase/user"
 	"github.com/flash-cards-vocab/backend/config"
 	"github.com/flash-cards-vocab/backend/handler"
 	"github.com/flash-cards-vocab/backend/middleware"
+	"github.com/flash-cards-vocab/backend/repository/card_repository"
 	"github.com/flash-cards-vocab/backend/repository/collection_repository"
 	"github.com/flash-cards-vocab/backend/repository/user_repository"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/api/option"
 	"gorm.io/gorm/logger"
 
 	postgres "github.com/flash-cards-vocab/backend/pkg/database"
@@ -43,7 +48,8 @@ func main() {
 	// user.PUT("/refresh-token", userHndlr.ViewCollectionById)
 
 	collection_repo := collection_repository.New(db)
-	collection_uc := collection_uc.New(collection_repo)
+	card_repo := card_repository.New(db)
+	collection_uc := collection_uc.New(collection_repo, card_repo)
 
 	collectionHndlr := handler.NewCollectionHandler(collection_uc)
 
@@ -53,12 +59,20 @@ func main() {
 	collection.PUT("/like/:id", middleware.AuthorizeJWT, collectionHndlr.LikeCollectionById)
 	collection.PUT("/dislike/:id", middleware.AuthorizeJWT, collectionHndlr.DislikeCollectionById)
 	collection.PUT("/view/:id", middleware.AuthorizeJWT, collectionHndlr.ViewCollectionById)
+	collection.GET("/search/:name", middleware.AuthorizeJWT, collectionHndlr.SearchCollectionByName)
+	collection.POST("/create", middleware.AuthorizeJWT, collectionHndlr.CreateCollection)
+	collection.PUT("/update-user-progress/:id", middleware.AuthorizeJWT, collectionHndlr.UpdateCollectionUserProgress)
 
-	// card := router.Group("/card")
-	// card.GET("/get-first-ten", h.GetMyCollections)
-	// card.PUT("/register", h.LikeCollectionById)
-	// card.PUT("/logout", h.DislikeCollectionById)
-	// card.PUT("/refresh-token", h.ViewCollectionById)
+	api_key := cfg.GCSJSONAPIKey
+	gcs_client, err := storage.NewClient(context.Background(), option.WithCredentialsJSON([]byte(api_key)))
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	card_uc := card_uc.New(card_repo, gcs_client, cfg.GCSBucketName, cfg.GCSPrefix)
+	cardHndlr := handler.NewCardHandler(card_uc, cfg.GCSAPIKey)
+	card := router.Group("/card")
+	card.POST("/upload-card-image", cardHndlr.UploadCardImage)
+	card.POST("/add-card-to-collection/:collection_id/:card_id", cardHndlr.AddExistingCardToCollection)
 
 	router.Run(fmt.Sprintf(":%d", cfg.Port))
 }
