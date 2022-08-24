@@ -9,8 +9,8 @@ import (
 
 var ErrUnexpected = errors.New("Internal error")
 var ErrUserExistsAlready = errors.New("User exists already")
-var ErrUnauthorized = errors.New("Anda tidak memiliki akses")
-var ErrNotFound = errors.New("Permintaan pinjaman tidak ditemukan")
+var ErrUnauthorized = errors.New("ErrUnauthorized")
+var ErrNotFound = errors.New("ErrNotFound")
 var ErrForbiddenSelfRequest = errors.New("Self request is forbidden")
 
 type UseCase interface {
