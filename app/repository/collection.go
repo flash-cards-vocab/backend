@@ -18,5 +18,5 @@ type CollectionRepository interface {
 	CollectionDislikeInteraction(id, userId uuid.UUID, isDisliked bool) error
 	ViewCollection(id, userId uuid.UUID) error
 	SearchCollectionByName(name string) error
-	CreateCollection(collectionName string, collectionCards entity.Card) error
+	CreateCollection(collection entity.Collection) (*entity.Collection, error)
 }

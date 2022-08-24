@@ -63,3 +63,17 @@ func (c *CardMetrics) ToEntity() *entity.CardMetrics {
 		Dislikes: c.Dislikes,
 	}
 }
+
+type CollectionCards struct {
+	Id           uuid.UUID `json:"id,omitempty"`
+	CardId       uuid.UUID `json:"card_id,omitempty"`
+	CollectionId uuid.UUID `json:"collection_id,omitempty"`
+}
+
+func (c *CollectionCards) ToEntity() *entity.CollectionCards {
+	return &entity.CollectionCards{
+		Id:           c.Id,
+		CardId:       c.CardId,
+		CollectionId: c.CollectionId,
+	}
+}

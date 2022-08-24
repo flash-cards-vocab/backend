@@ -38,7 +38,9 @@ func ValidateToken(signedToken string) (*JWTClaim, error) {
 		signedToken,
 		&JWTClaim{},
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte("TODO: REPLACE THIS STRING WITH LEGIT SECRET CODE"), nil
+			return []byte(
+				"TODO: REPLACE THIS STRING WITH LEGIT SECRET CODE",
+			), nil
 		},
 	)
 	if err != nil {
