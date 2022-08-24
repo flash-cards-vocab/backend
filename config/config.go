@@ -18,6 +18,11 @@ type Config struct {
 
 	RedisHost string `envconfig:"REDIS_HOST" default:"localhost"`
 	RedisPort string `envconfig:"REDIS_PORT" default:"33792"`
+
+	GCSBucketName string `envconfig:"GCS_BUCKET_NAME" default:"flashcards-images"`
+	GCSPrefix     string `envconfig:"GCS_PREFIX" default:"dev"`
+	GCSAPIKey     string `envconfig:"GCS_API_KEY" default:""`
+	GCSJSONAPIKey string `envconfig:"GCS_JSON_API_KEY" default:""`
 }
 
 func New() Config {

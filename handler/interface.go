@@ -18,3 +18,8 @@ type RestUserHandler interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
 }
+
+type RestCardHandler interface {
+	AddExistingCardToCollection(c *gin.Context)
+	UploadCardImage(c *gin.Context)
+}
