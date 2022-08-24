@@ -18,6 +18,6 @@ type UseCase interface {
 	DislikeCollectionById(id, userId uuid.UUID) error
 	ViewCollectionById(id, userId uuid.UUID) error
 	SearchCollectionByName(text string) ([]*entity.Collection, error)
-	CreateCollection(collection entity.Collection, cards []entity.Card) error
+	CreateCollection(collection entity.Collection, cards []*entity.Card) error
 	UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewing, learning uint32) error
 }

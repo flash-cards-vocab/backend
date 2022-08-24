@@ -24,3 +24,9 @@ type Collection struct {
 	Name   string    `json:"name,omitempty"`
 	Topics []string  `json:"topics,omitempty"`
 }
+
+type CreateCollectionRequest struct {
+	Name   string   `json:"name,omitempty"`
+	Topics []string `json:"topics,omitempty"`
+	Cards  []*Card  `json:"cards,omitempty"`
+}

@@ -12,11 +12,13 @@ import (
 
 type usecase struct {
 	collection_repo repository.CollectionRepository
+	card_repo       repository.CardRepository
 }
 
-func New(collection_repo repository.CollectionRepository) UseCase {
+func New(collection_repo repository.CollectionRepository, card_repo repository.CardRepository) UseCase {
 	return &usecase{
 		collection_repo: collection_repo,
+		card_repo:       card_repo,
 	}
 }
 
@@ -87,7 +89,7 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	isDisliked, err := uc.collection_repo.IsCollectionDislikedByUser(id, userId)
@@ -96,7 +98,7 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	if isDisliked {
@@ -106,7 +108,7 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) error {
 				return ErrNotFound
 			}
 			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+			return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 	}
 
@@ -116,7 +118,7 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	return nil
@@ -129,7 +131,7 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	isLiked, err := uc.collection_repo.IsCollectionLikedByUser(id, userId)
@@ -138,7 +140,7 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	if isLiked {
@@ -148,7 +150,7 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) error {
 				return ErrNotFound
 			}
 			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+			return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 	}
 
@@ -158,7 +160,7 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	return nil
@@ -171,7 +173,7 @@ func (uc *usecase) ViewCollectionById(id, userId uuid.UUID) error {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	if !isViewed {
@@ -181,7 +183,7 @@ func (uc *usecase) ViewCollectionById(id, userId uuid.UUID) error {
 				return ErrNotFound
 			}
 			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return fmt.Errorf("%w: %v", ErrUnexpected, "Gagal memuat")
+			return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 	}
 	return nil
@@ -191,8 +193,24 @@ func (uc *usecase) SearchCollectionByName(text string) ([]*entity.Collection, er
 	panic("Not implemented")
 }
 
-func (uc *usecase) CreateCollection(collection entity.Collection, cards []entity.Card) error {
-	panic("Not implemented")
+func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entity.Card) error {
+	createdCollection, err := uc.collection_repo.CreateCollection(collection)
+	if err != nil {
+		if errors.Is(err, repository.ErrCollectionNotFound) {
+			return ErrNotFound
+		}
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+	err = uc.card_repo.CreateMultipleCards(createdCollection.Id, cards)
+	if err != nil {
+		if errors.Is(err, repository.ErrCollectionNotFound) {
+			return ErrNotFound
+		}
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+	return nil
 }
 
 func (uc *usecase) UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewing, learning uint32) error {

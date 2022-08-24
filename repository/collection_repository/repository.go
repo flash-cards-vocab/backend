@@ -1,6 +1,8 @@
 package collection_repository
 
 import (
+	"time"
+
 	repository_intf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
@@ -20,7 +22,7 @@ func (r *repository) GetMyCollections(user_id uuid.UUID) ([]*entity.Collection, 
 	err := r.db.
 		Raw(`
 			SELECT * FROM collection
-			WHERE user_id = ?
+			WHERE author_id = ?
 			AND deleted_at = null
 		`, user_id).
 		Scan(&datas).
@@ -190,7 +192,18 @@ func (r *repository) ViewCollection(id, userId uuid.UUID) error {
 func (r *repository) SearchCollectionByName(name string) error {
 	panic("Not implemented")
 }
+func (r *repository) CreateCollection(collection entity.Collection) (*entity.Collection, error) {
+	collection_model := Collection{
+		Name:      collection.Name,
+		Topics:    collection.Topics,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 
-func (r *repository) CreateCollection(collectionName string, collectionCards entity.Card) error {
-	panic("Not implemented")
+	err := r.db.Table("collection").Create(collection_model).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return collection_model.ToEntity(), nil
 }
