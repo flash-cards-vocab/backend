@@ -54,3 +54,12 @@ func (r *repository) GetUserByEmail(email string) (*entity.User, error) {
 	}
 	return user, nil
 }
+
+func (r *repository) GetUserById(id uuid.UUID) (*entity.User, error) {
+	var user *entity.User
+	err := r.db.Table(r.tableName).Where("id=?", id).Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
