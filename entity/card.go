@@ -13,3 +13,10 @@ type Card struct {
 	Antonyms   string    `json:"antonyms,omitempty"`
 	Synonyms   string    `json:"synonyms,omitempty"`
 }
+
+type CardsPagination struct {
+	Cards []*Card `json:"cards,omitempty"`
+	Page  int     `json:"page,omitempty"`
+	Size  int     `json:"size,omitempty"`
+	Total int     `json:"total,omitempty"`
+}

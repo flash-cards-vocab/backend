@@ -2,7 +2,6 @@ package user_repository
 
 import (
 	"errors"
-	"fmt"
 
 	repository_intf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
@@ -31,8 +30,6 @@ func (r *repository) CreateUser(user entity.User) (*entity.User, error) {
 func (r *repository) CheckIfUserExistsByEmail(email string) (bool, error) {
 	var user *entity.User
 	err := r.db.Table(r.tableName).Where("email=?", email).First(&user).Error
-	fmt.Println(err, "err")
-	fmt.Println(user.Email, "user.Email")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil

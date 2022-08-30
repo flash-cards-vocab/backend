@@ -33,10 +33,11 @@ func (c *Card) ToEntity() *entity.Card {
 }
 
 type CardUserProgress struct {
-	Id     uuid.UUID                   `gorm:"primary_key;column:id"`
-	CardId uuid.UUID                   `gorm:"column:card_id"`
-	UserId uuid.UUID                   `gorm:"column:user_id"`
-	Status entity.CardUserProgressType `gorm:"column:learning"`
+	Id            uuid.UUID                   `gorm:"primary_key;column:id"`
+	CardId        uuid.UUID                   `gorm:"column:card_id"`
+	UserId        uuid.UUID                   `gorm:"column:user_id"`
+	Status        entity.CardUserProgressType `gorm:"column:status"`
+	LearningCount uint32                      `gorm:"column:learning_count"`
 }
 
 func (c *CardUserProgress) ToEntity() *entity.CardUserProgress {
@@ -75,5 +76,25 @@ func (c *CollectionCards) ToEntity() *entity.CollectionCards {
 		Id:           c.Id,
 		CardId:       c.CardId,
 		CollectionId: c.CollectionId,
+	}
+}
+
+type CollectionUserProgress struct {
+	Id           uuid.UUID `gorm:"primary_key;column:id"`
+	CollectionId uuid.UUID `gorm:"column:collection_id"`
+	UserId       uuid.UUID `gorm:"column:user_id"`
+	Mastered     uint32    `gorm:"column:mastered"`
+	Reviewing    uint32    `gorm:"column:reviewing"`
+	Learning     uint32    `gorm:"column:learning"`
+}
+
+func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
+	return &entity.CollectionUserProgress{
+		Id:           c.Id,
+		CollectionId: c.CollectionId,
+		UserId:       c.UserId,
+		Mastered:     c.Mastered,
+		Reviewing:    c.Reviewing,
+		Learning:     c.Learning,
 	}
 }

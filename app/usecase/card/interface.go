@@ -20,4 +20,6 @@ type UseCase interface {
 		filename string,
 	) (string, error)
 	AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error
+	KnowCard(collectionId, cardId, userId uuid.UUID) error
+	DontKnowCard(collectionId, cardId, userId uuid.UUID) error
 }

@@ -10,6 +10,7 @@ const (
 	CardUserProgressType_Mastered  CardUserProgressType = "mastered"
 	CardUserProgressType_Reviewing CardUserProgressType = "reviewing"
 	CardUserProgressType_Learning  CardUserProgressType = "learning"
+	CardUserProgressType_None      CardUserProgressType = "none"
 )
 
 type CardUserProgress struct {
