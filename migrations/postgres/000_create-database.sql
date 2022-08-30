@@ -1,11 +1,20 @@
 DROP TABLE IF EXISTS card;
 DROP TABLE IF EXISTS card_user_progress;
 DROP TABLE IF EXISTS card_metrics;
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS "user";
 DROP TABLE IF EXISTS collection;
 DROP TABLE IF EXISTS collection_user_progress;
 DROP TABLE IF EXISTS collection_user_metrics;
 DROP TABLE IF EXISTS collection_metrics;
+DROP TABLE IF EXISTS collection_cards;
+DROP TYPE IF EXISTS card_user_progress_status_enum;
+
+CREATE TABLE collection_cards (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    card_id uuid NOT NULL,
+    collection_id uuid NOT NULL,
+    PRIMARY KEY (id)
+);
 
 CREATE TABLE card (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -27,6 +36,7 @@ CREATE TABLE card_user_progress (
     card_id uuid NOT NULL,
     user_id uuid NOT NULL,
     status card_user_progress_status_enum NOT NULL default 'none',
+    learning_count INT NOT NULL default 0,
     PRIMARY KEY (id)
 );
 
@@ -34,10 +44,11 @@ CREATE TABLE card_metrics (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     card_id uuid NOT NULL,
     likes INT NOT NULL default 0,
+    dislikes INT NOT NULL default 0,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE user (
+CREATE TABLE "user" (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR (150) NOT NULL,
     email VARCHAR (150) NOT NULL,
@@ -49,7 +60,7 @@ CREATE TABLE collection (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR (150) NOT NULL,
     author_id uuid NOT NULL,
-    topics []TEXT NOT NULL default [],
+    topics TEXT[] NOT NULL DEFAULT array[]::VARCHAR[],
     deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -67,6 +78,7 @@ CREATE TABLE collection_user_progress (
 );
 CREATE TABLE collection_user_metrics (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    user_id uuid NOT NULL,
     collection_id uuid NOT NULL,
     liked boolean NOT NULL default FALSE,
     disliked boolean NOT NULL default FALSE,
