@@ -60,7 +60,6 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error1")
 		// return nil, httpErrors.NewRestErrorWithMessage(http.StatusBadRequest, httpErrors.ErrEmailAlreadyExists, nil)
 	}
-	fmt.Println(existsUser, "existsUser")
 	if existsUser {
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "User exists already")
 	}

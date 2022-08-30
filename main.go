@@ -49,13 +49,17 @@ func main() {
 
 	collection_repo := collection_repository.New(db)
 	card_repo := card_repository.New(db)
-	collection_uc := collection_uc.New(collection_repo, card_repo)
+	collection_uc := collection_uc.New(collection_repo, card_repo, user_repo)
 
 	collectionHndlr := handler.NewCollectionHandler(collection_uc)
 
 	/* CRUD author for CMS */
 	collection := router.Group("/collection")
 	collection.GET("/my", middleware.AuthorizeJWT, collectionHndlr.GetMyCollections)
+	collection.GET("/recommended", middleware.AuthorizeJWT, collectionHndlr.GetRecommendedCollectionsPreview)
+	collection.GET("/metrics/:id", middleware.AuthorizeJWT, collectionHndlr.GetCollectionMetricsById)
+	collection.GET("/full/:id", middleware.AuthorizeJWT, collectionHndlr.GetCollectionWithCards)
+	collection.PUT("/star/:id", middleware.AuthorizeJWT, collectionHndlr.StarCollectionById)
 	collection.PUT("/like/:id", middleware.AuthorizeJWT, collectionHndlr.LikeCollectionById)
 	collection.PUT("/dislike/:id", middleware.AuthorizeJWT, collectionHndlr.DislikeCollectionById)
 	collection.PUT("/view/:id", middleware.AuthorizeJWT, collectionHndlr.ViewCollectionById)
@@ -71,8 +75,10 @@ func main() {
 	card_uc := card_uc.New(card_repo, gcs_client, cfg.GCSBucketName, cfg.GCSPrefix)
 	cardHndlr := handler.NewCardHandler(card_uc, cfg.GCSAPIKey)
 	card := router.Group("/card")
-	card.POST("/upload-card-image", cardHndlr.UploadCardImage)
-	card.POST("/add-card-to-collection/:collection_id/:card_id", cardHndlr.AddExistingCardToCollection)
+	card.POST("/upload-card-image", middleware.AuthorizeJWT, cardHndlr.UploadCardImage)
+	card.POST("/add-card-to-collection/:collection_id/:card_id", middleware.AuthorizeJWT, cardHndlr.AddExistingCardToCollection)
+	card.PUT("/know/:card_id/:collection_id", middleware.AuthorizeJWT, cardHndlr.KnowCard)
+	card.PUT("/dont-know/:card_id/:collection_id", middleware.AuthorizeJWT, cardHndlr.DontKnowCard)
 
 	router.Run(fmt.Sprintf(":%d", cfg.Port))
 }

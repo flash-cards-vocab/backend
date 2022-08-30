@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -51,8 +50,6 @@ func ValidateToken(signedToken string) (*JWTClaim, error) {
 		err = errors.New("couldn't parse claims")
 		return nil, err
 	}
-	fmt.Println("claims.Email", claims.Email)
-	fmt.Println("claims.ID", claims.ID)
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		err = errors.New("token expired")
 		return nil, err
