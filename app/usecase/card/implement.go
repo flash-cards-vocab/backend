@@ -45,8 +45,6 @@ func (u *usecase) UploadCardImage(
 
 	filename_to_upload := location + "/" + strings.ReplaceAll(filename, " ", "+")
 	full_filename := "https://storage.googleapis.com/" + u.bucket_name + "/" + u.env_prefix + "/" + filename_to_upload
-	fmt.Println(location, filename, "location , filename")
-	fmt.Println(full_filename, "full_filename")
 	wc := u.gcs_client.Bucket(u.bucket_name).Object(u.env_prefix + "/" + filename_to_upload).NewWriter(ctx)
 	// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
 
