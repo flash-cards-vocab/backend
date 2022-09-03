@@ -266,9 +266,31 @@ func (r *repository) ViewCollection(id, userId uuid.UUID) error {
 	return nil
 }
 
-func (r *repository) SearchCollectionByName(name string) error {
-	panic("Not implemented")
+func (r *repository) SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error) {
+
+	datas := []*Collection{}
+	err := r.db.
+		Raw(`
+			SELECT coll.* FROM collection coll
+			INNER JOIN collection_metrics cm on coll.id = cm.collection_id 
+			WHERE lower(coll.name) like lower(?) 
+			AND coll.deleted_at IS null
+			AND coll.author_id <> ?
+			order by cm.likes limit 10
+		`, "%"+search+"%", userId).
+		Scan(&datas).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	resp := []*entity.Collection{}
+	for _, data := range datas {
+		resp = append(resp, data.ToEntity())
+	}
+	return resp, nil
+
 }
+
 func (r *repository) CreateCollection(collection entity.Collection) (*entity.Collection, error) {
 	tx := r.db.Begin()
 	collection_model := Collection{

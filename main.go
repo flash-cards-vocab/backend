@@ -63,7 +63,7 @@ func main() {
 	collection.PUT("/like/:id", middleware.AuthorizeJWT, collectionHndlr.LikeCollectionById)
 	collection.PUT("/dislike/:id", middleware.AuthorizeJWT, collectionHndlr.DislikeCollectionById)
 	collection.PUT("/view/:id", middleware.AuthorizeJWT, collectionHndlr.ViewCollectionById)
-	collection.GET("/search/:name", middleware.AuthorizeJWT, collectionHndlr.SearchCollectionByName)
+	collection.GET("/search/:query", middleware.AuthorizeJWT, collectionHndlr.SearchCollectionByName)
 	collection.POST("/create", middleware.AuthorizeJWT, collectionHndlr.CreateCollection)
 	collection.PUT("/update-user-progress/:id", middleware.AuthorizeJWT, collectionHndlr.UpdateCollectionUserProgress)
 

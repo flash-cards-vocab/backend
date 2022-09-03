@@ -20,7 +20,7 @@ type CollectionRepository interface {
 	CollectionLikeInteraction(id, userId uuid.UUID, isLiked bool) error
 	CollectionDislikeInteraction(id, userId uuid.UUID, isDisliked bool) error
 	ViewCollection(id, userId uuid.UUID) error
-	SearchCollectionByName(name string) error
+	SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error)
 	CreateCollection(collection entity.Collection) (*entity.Collection, error)
 
 	GetCollectionMetrics(id uuid.UUID) (*entity.CollectionMetrics, error)

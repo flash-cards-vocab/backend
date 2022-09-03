@@ -204,7 +204,24 @@ func (h *handlerCollection) ViewCollectionById(c *gin.Context) {
 	}
 }
 func (h *handlerCollection) SearchCollectionByName(c *gin.Context) {
-	panic("not implemented")
+
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
+	}
+	text := c.Param("query")
+
+	data, err := h.collection_uc.SearchCollectionByName(text, user_ctx.UserId)
+	if err == nil {
+		c.JSON(http.StatusOK, SuccessResponse{Data: data})
+	} else {
+		if errors.Is(err, collection_usecase.ErrNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+	}
+
 }
 func (h *handlerCollection) CreateCollection(c *gin.Context) {
 	var createCollectionData entity.CreateCollectionRequest
