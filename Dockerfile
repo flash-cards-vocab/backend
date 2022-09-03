@@ -22,4 +22,4 @@ RUN go build -o /build
 EXPOSE 8080
 
 # Run the executable
-ENTRYPOINT CompileDaemon --build="go build main.go" --command=./main
+CMD [ "go build main.go && /main" ]
