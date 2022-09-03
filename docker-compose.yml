@@ -3,17 +3,17 @@ services:
   api:
     container_name: golang_container
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-      - DATABASE_HOST=${DB_HOST}
-      - DATABASE_PORT=${DB_PORT}
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_DBNAME=postgres
+      - DB_HOST=postgresql
+      - DB_PORT=5432
     tty: true
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8000:8080
+      - "8000:8080"
     restart: on-failure
     volumes:
       - .:/api
@@ -27,12 +27,12 @@ services:
     image: postgres:latest
     container_name: postgres_container
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-      - DATABASE_HOST=${DB_HOST}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth_db
     ports:
       - '1234:5432'
+    restart: always
     networks:
       - learning
 
