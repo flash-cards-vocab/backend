@@ -1,7 +1,10 @@
 package config
 
 import (
-	"github.com/kelseyhightower/envconfig"
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -25,9 +28,21 @@ type Config struct {
 	GCSJSONAPIKey string `envconfig:"GCS_JSON_API_KEY" default:""`
 }
 
-func New() Config {
-	cfg := Config{}
-	envconfig.MustProcess("", &cfg)
-	cfg.DBPassword = "password"
-	return cfg
+func New() *Config {
+	f, err := os.Open("config.yml")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
+	defer f.Close()
+
+	decoder := yaml.NewDecoder(f)
+	var config Config
+	err = decoder.Decode(&config)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
+	return &config
+
 }

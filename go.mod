@@ -13,6 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	google.golang.org/api v0.88.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gorm v1.23.7
 )

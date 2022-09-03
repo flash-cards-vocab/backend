@@ -1,4 +1,5 @@
 FROM golang:1.17.3-alpine as builder
+ENV config=docker
 
 LABEL maintainer="Aitugan Mirash"
 
@@ -21,4 +22,4 @@ RUN go build -o /build
 EXPOSE 8080
 
 # Run the executable
-CMD [ "/build" ]
+ENTRYPOINT CompileDaemon --build="go build main.go" --command=./main
