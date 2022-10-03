@@ -456,7 +456,7 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) (*entity.CollectionF
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
-	isDisliked, err := uc.collection_repo.IsCollectionDislikedByUser(id, userId)
+	isLiked, isDisliked, err := uc.collection_repo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
 		if errors.Is(err, repository.ErrCollectionNotFound) {
 			return nil, ErrNotFound
@@ -526,7 +526,7 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) (*entity.Collecti
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
-	isLiked, err := uc.collection_repo.IsCollectionLikedByUser(id, userId)
+	isLiked, isDisliked, err := uc.collection_repo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
 		if errors.Is(err, repository.ErrCollectionNotFound) {
 			return nil, ErrNotFound

@@ -158,6 +158,55 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 	return nil
 }
 
+func (r *repository) CreateCollectionUserMetrics(id, userId uuid.UUID) error {
+	collUserMetrics := CollectionUserMetrics{
+		Id:           uuid.New(),
+		UserId:       userId,
+		CollectionId: id,
+		Liked:        false,
+		Disliked:     false,
+		Viewed:       true,
+		Starred:      false,
+	}
+	err := r.db.Table("collection_user_metrics").Create(collUserMetrics).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) CreateCollectionUserProgress(id, userId uuid.UUID) error {
+	collUserProgress := CollectionUserProgress{
+		Id:           uuid.New(),
+		CollectionId: id,
+		UserId:       userId,
+		Mastered:     0,
+		Reviewing:    0,
+		Learning:     0,
+	}
+	err := r.db.Table("collection_user_progress").Create(collUserProgress).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bool, bool, error) {
+	metrics := CollectionUserMetrics{}
+	err := r.db.
+		Table("collection_user_metrics").
+		Where("collection_id = ? AND user_id = ?", id, userId).
+		First(&metrics).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, false, repository_intf.ErrCollectionNotFound
+		}
+		return false, false, err
+	}
+	return metrics.Liked, metrics.Disliked, nil
+}
+
 func (r *repository) IsCollectionLikedByUser(id, userId uuid.UUID) (bool, error) {
 	metrics := CollectionUserMetrics{}
 	err := r.db.
