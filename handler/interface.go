@@ -7,6 +7,8 @@ import (
 type RestCollectionHandler interface {
 	GetMyCollections(c *gin.Context)
 	GetRecommendedCollectionsPreview(c *gin.Context)
+	GetLikedCollectionsPreview(c *gin.Context)
+	GetStarredCollectionsPreview(c *gin.Context)
 	GetCollectionMetricsById(c *gin.Context)
 	GetCollectionWithCards(c *gin.Context)
 	LikeCollectionById(c *gin.Context)

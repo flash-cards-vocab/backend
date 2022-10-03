@@ -13,6 +13,8 @@ type CollectionRepository interface {
 	GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error)
 	GetCollectionTotal(collection_id uuid.UUID) (int, error)
 	GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
+	GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
+	GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
 	IsCollectionLikedByUser(id, userId uuid.UUID) (bool, error)
 	IsCollectionDislikedByUser(id, userId uuid.UUID) (bool, error)
 	IsCollectionViewedByUser(id, userId uuid.UUID) (bool, error)

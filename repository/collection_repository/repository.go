@@ -65,7 +65,53 @@ func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*enti
 			WHERE author_id <> ? 
 			AND deleted_at IS null limit 10
 		`, userId).
-		Scan(&datas).
+		Find(&datas).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	resp := []*entity.Collection{}
+	for _, data := range datas {
+		resp = append(resp, data.ToEntity())
+	}
+	return resp, nil
+}
+
+func (r *repository) GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
+	datas := []Collection{}
+	err := r.db.
+		Raw(`
+			SELECT * FROM collection coll
+			INNER JOIN public.collection_user_metrics coll_um 
+			ON coll_um.collection_id = coll.id
+			WHERE author_id <> ? 
+			AND coll_um.liked=TRUE
+			deleted_at IS null
+		`, userId).
+		Find(&datas).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	resp := []*entity.Collection{}
+	for _, data := range datas {
+		resp = append(resp, data.ToEntity())
+	}
+	return resp, nil
+}
+
+func (r *repository) GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
+	datas := []Collection{}
+	err := r.db.
+		Raw(`
+			SELECT * FROM collection coll
+			INNER JOIN public.collection_user_metrics coll_um 
+			ON coll_um.collection_id = coll.id
+			WHERE author_id <> ? 
+			AND coll_um.starred=TRUE
+			deleted_at IS null
+		`, userId).
+		Find(&datas).
 		Error
 	if err != nil {
 		return nil, err

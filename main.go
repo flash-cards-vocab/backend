@@ -57,6 +57,8 @@ func main() {
 	collection := router.Group("/collection")
 	collection.GET("/my", middleware.AuthorizeJWT, collectionHndlr.GetMyCollections)
 	collection.GET("/recommended", middleware.AuthorizeJWT, collectionHndlr.GetRecommendedCollectionsPreview)
+	collection.GET("/liked", middleware.AuthorizeJWT, collectionHndlr.GetLikedCollectionsPreview)
+	collection.GET("/starred", middleware.AuthorizeJWT, collectionHndlr.GetStarredCollectionsPreview)
 	collection.GET("/metrics/:id", middleware.AuthorizeJWT, collectionHndlr.GetCollectionMetricsById)
 	collection.GET("/full/:id", middleware.AuthorizeJWT, collectionHndlr.GetCollectionWithCards)
 	collection.PUT("/star/:id", middleware.AuthorizeJWT, collectionHndlr.StarCollectionById)
