@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	gormMysql "gorm.io/driver/postgres"
@@ -24,12 +25,18 @@ type mysql struct {
 type mysqlOption func(*mysql)
 
 func Connect(DBHost string, DBPort string, DBUserName string, DBPass string, DBDatabaseName string, DBLogMode logger.LogLevel, options ...mysqlOption) (*gorm.DB, error) {
+	dbHost := os.Getenv("DATABASE_HOST")
+	dbPort := os.Getenv("DATABASE_PORT")
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+
 	db := &mysql{
-		DBHost:                        "127.0.0.1",
-		DBPort:                        "5432",
-		DBUserName:                    "postgres",
-		DBPass:                        "postgres",
-		DBDatabaseName:                "postgres",
+		DBHost:                        dbHost,
+		DBPort:                        dbPort,
+		DBUserName:                    dbUser,
+		DBPass:                        dbPassword,
+		DBDatabaseName:                dbName,
 		DBLogMode:                     logger.Info,
 		maxIdleConnection:             5,
 		maxOpenConnection:             10,
@@ -46,7 +53,7 @@ func Connect(DBHost string, DBPort string, DBUserName string, DBPass string, DBD
 func connect(param *mysql) (*gorm.DB, error) {
 	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?loc=Local&parseTime=true",
 	// 	param.DBUserName, param.DBPass, param.DBHost, param.DBPort, param.DBDatabaseName)
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", //required",
 		param.DBHost, param.DBUserName, param.DBPass, param.DBDatabaseName, param.DBPort)
 
 	db, err := gorm.Open(gormMysql.Open(dsn), &gorm.Config{
