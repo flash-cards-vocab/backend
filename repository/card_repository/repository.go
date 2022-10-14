@@ -135,6 +135,9 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				Where("collection_id=? AND user_id=?", collectionId, userId).
 				Create(&collection_user_progress).
 				Error
+			if err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
