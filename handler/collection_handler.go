@@ -56,6 +56,43 @@ func (h *handlerCollection) GetRecommendedCollectionsPreview(c *gin.Context) {
 	}
 }
 
+func (h *handlerCollection) GetLikedCollectionsPreview(c *gin.Context) {
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
+	}
+
+	data, err := h.collection_uc.GetLikedCollectionsPreview(user_ctx.UserId)
+	if err == nil {
+		c.JSON(http.StatusOK, SuccessResponse{Data: data})
+	} else {
+		if errors.Is(err, collection_usecase.ErrNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+	}
+
+}
+
+func (h *handlerCollection) GetStarredCollectionsPreview(c *gin.Context) {
+	user_ctx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "User id not found"})
+	}
+
+	data, err := h.collection_uc.GetStarredCollectionsPreview(user_ctx.UserId)
+	if err == nil {
+		c.JSON(http.StatusOK, SuccessResponse{Data: data})
+	} else {
+		if errors.Is(err, collection_usecase.ErrNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+	}
+}
+
 func (h *handlerCollection) GetCollectionWithCards(c *gin.Context) {
 	paramId := c.Param("id")
 	id, err := uuid.Parse(paramId)

@@ -135,6 +135,9 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				Where("collection_id=? AND user_id=?", collectionId, userId).
 				Create(&collection_user_progress).
 				Error
+			if err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
@@ -263,7 +266,7 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 	err = r.db.
 		Table("card_user_progress").
 		Where("card_id=? AND user_id=?", cardId, userId).
-		Scan(&collection_card).
+		First(&collection_card).
 		Error
 
 	if err != nil {

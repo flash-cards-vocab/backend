@@ -1,25 +1,20 @@
-FROM golang:1.17.3-alpine as builder
-ENV config=docker
+FROM golang:1.17-alpine as builder
 
 LABEL maintainer="Aitugan Mirash"
 
 RUN apk update && apk add --no-cache git && apk add --no-cach bash && apk add build-base
 
-RUN mkdir /api
-WORKDIR /api
+RUN mkdir /app
+WORKDIR /app
 
 COPY . .
-COPY .env .
+RUN go get -d -v ./...
 
-RUN go mod tidy
-RUN go get .
-RUN go install .
+RUN go install -v ./...
 
-# Build the Go api
 RUN go build -o /build
 
-# Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Run the executable
-CMD [ "go build main.go && /main" ]
+CMD [ "/build" ]
+
