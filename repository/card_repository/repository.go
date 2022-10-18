@@ -216,6 +216,17 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				return err
 			}
 		} else if collection_card.LearningCount == 0 {
+			err = r.db.Table("card_user_progress").
+				Where("card_id=? AND user_id=?", cardId, userId).
+				Updates(map[string]interface{}{
+					"status":         entity.CardUserProgressType_Reviewing,
+					"learning_count": collection_card.LearningCount + 1,
+				}).Error
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
 			err = r.db.Table("collection_user_progress").
 				Where("collection_id=? AND user_id=?", collectionId, userId).
 				Updates(map[string]interface{}{
@@ -258,6 +269,9 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				Where("collection_id=? AND user_id=?", collectionId, userId).
 				Create(&collection_user_progress).
 				Error
+			if err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
