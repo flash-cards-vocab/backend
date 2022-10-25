@@ -496,14 +496,14 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository_intf.ErrCollectionNotFound
+			// return nil, repository_intf.ErrCollectionNotFound
 
-			// return &entity.CollectionUserMetrics{
-			// 	CollectionId: id,
-			// 	Liked:        false,
-			// 	Disliked:     false,
-			// 	Viewed:       false,
-			// }, nil
+			return &entity.CollectionUserMetrics{
+				CollectionId: id,
+				Liked:        false,
+				Disliked:     false,
+				Viewed:       false,
+			}, nil
 		}
 		return nil, err
 	}
