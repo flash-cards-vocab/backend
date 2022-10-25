@@ -142,7 +142,6 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			return err
 		}
 	}
-
 	collection_card := CardUserProgress{}
 	err = r.db.
 		Table("card_user_progress").
@@ -208,13 +207,24 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
-					"status":         entity.CardUserProgressType_Learning,
+					"status":         entity.CardUserProgressType_Reviewing,
 					"learning_count": collection_card.LearningCount + 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
 				return err
 			}
+			// err = r.db.Table("collection_user_progress").
+			// 	Where("collection_id=? AND user_id=?", collectionId, userId).
+			// 	Updates(map[string]interface{}{
+			// 		"reviewing": collection_user_progress.Reviewing + 1,
+			// 		"learning":  collection_user_progress.Mastered + 1,
+			// 	}).Error
+			// if err != nil {
+			// 	tx.Rollback()
+			// 	return err
+			// }
+
 		} else if collection_card.LearningCount == 0 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
@@ -248,7 +258,6 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error {
 	tx := r.db.Begin()
 	collection_user_progress := CollectionUserProgress{}
-
 	err := r.db.
 		Table("collection_user_progress").
 		Where("collection_id=? AND user_id=?", collectionId, userId).
