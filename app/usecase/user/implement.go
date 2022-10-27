@@ -7,6 +7,7 @@ import (
 
 	"github.com/flash-cards-vocab/backend/pkg/helpers"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 
 	// "github.com/opentracing/opentracing-go"
 	// "github.com/pkg/errors"
@@ -61,16 +62,12 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 		// return nil, httpErrors.NewRestErrorWithMessage(http.StatusBadRequest, httpErrors.ErrEmailAlreadyExists, nil)
 	}
 	if existsUser {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "User exists already")
+		return nil, fmt.Errorf("%w: %v", ErrUserExistsAlready, "User exists already")
 	}
 
 	if err = user.PrepareCreate(); err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
-		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error2")
-		// return nil, httpErrors.NewBadRequestError(errors.Wrap(err, "authUC.Register.PrepareCreate"))
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Error while preparing user data to be created")
 	}
 
 	createdUser, err := uc.userRepo.CreateUser(user)
@@ -86,11 +83,39 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error3")
-		// return nil, httpErrors.NewInternalServerError(errors.Wrap(err, "authUC.Register.GenerateJWTToken"))
 	}
 
 	return &entity.UserWithToken{
 		User:  createdUser,
+		Token: token,
+	}, nil
+}
+
+// Login user, returns user model with jwt token
+func (uc *usecase) Login(ctx context.Context, user entity.UserLogin) (*entity.UserWithToken, error) {
+	foundUser, err := uc.userRepo.GetUserByEmail(user.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = foundUser.ComparePasswords(user.Password); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return nil, fmt.Errorf("%w: %v", ErrUserPasswordMismatch, "Password mismatch")
+		}
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	foundUser.Password = ""
+
+	token, err := helpers.GenerateJWTToken(foundUser)
+	if err != nil {
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	return &entity.UserWithToken{
+		User:  foundUser,
 		Token: token,
 	}, nil
 }
@@ -178,37 +203,6 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 
 // 	return u.authRepo.GetUsers(ctx, pq)
 // }
-
-// Login user, returns user model with jwt token
-func (uc *usecase) Login(ctx context.Context, user entity.UserLogin) (*entity.UserWithToken, error) {
-	// span, ctx := opentracing.StartSpanFromContext(ctx, "authUC.Login")
-	// defer span.Finish()
-
-	foundUser, err := uc.userRepo.GetUserByEmail(user.Email)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = foundUser.ComparePasswords(user.Password); err != nil {
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-		// return nil, httpErrors.NewUnauthorizedError(errors.Wrap(err, "authUC.GetUsers.ComparePasswords"))
-	}
-
-	foundUser.Password = ""
-
-	token, err := helpers.GenerateJWTToken(foundUser)
-	if err != nil {
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-		// return nil, httpErrors.NewInternalServerError(errors.Wrap(err, "authUC.GetUsers.GenerateJWTToken"))
-	}
-
-	return &entity.UserWithToken{
-		User:  foundUser,
-		Token: token,
-	}, nil
-}
 
 // Upload user avatar
 // func (uc *usecase) UploadAvatar(ctx context.Context, userID uuid.UUID, file entity.UploadInput) (*entity.User, error) {
