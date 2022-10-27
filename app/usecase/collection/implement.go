@@ -60,11 +60,16 @@ func (uc *usecase) GetMyCollections(userId uuid.UUID) ([]*entity.UserCollectionR
 		}
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+				err = uc.collection_repo.CreateCollectionUserMetrics(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 
 		totalCards, err := uc.collection_repo.GetCollectionTotal(collection.Id)
@@ -117,11 +122,16 @@ func (uc *usecase) GetCollectionFullUserMetrics(id, userId uuid.UUID) (*entity.C
 
 	collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
+		if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+			err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
+		} else {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	collection_reponse := &entity.CollectionFullUserMetricsResponse{
@@ -179,11 +189,16 @@ func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity
 
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+				err = uc.collection_repo.CreateCollectionUserMetrics(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 		totalCards, err := uc.collection_repo.GetCollectionTotal(collection.Id)
 		if err != nil {
@@ -264,11 +279,16 @@ func (uc *usecase) GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.UserC
 
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+				err = uc.collection_repo.CreateCollectionUserMetrics(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 		totalCards, err := uc.collection_repo.GetCollectionTotal(collection.Id)
 		if err != nil {
@@ -349,11 +369,16 @@ func (uc *usecase) GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Use
 
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+				err = uc.collection_repo.CreateCollectionUserMetrics(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 		totalCards, err := uc.collection_repo.GetCollectionTotal(collection.Id)
 		if err != nil {
@@ -449,7 +474,7 @@ func (uc *usecase) StarCollectionById(id, userId uuid.UUID) error {
 func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) (*entity.CollectionFullUserMetricsResponse, error) {
 	_, err := uc.collection_repo.GetCollectionUserMetrics(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
+		if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
 			err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
 			if err != nil {
 				logrus.Errorf("%w: %v", ErrUnexpected, err)
@@ -463,9 +488,16 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) (*entity.CollectionF
 
 	isLiked, isDisliked, err := uc.collection_repo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
-		}
+		// if errors.Is(err, repository.ErrCollectionNotFound) {
+		// 	return nil, ErrNotFound
+		// }
+		// if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+		// 	err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
+		// 	if err != nil {
+		// 		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		// 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		// 	}
+		// }
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
@@ -501,11 +533,16 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) (*entity.CollectionF
 
 	user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
+		if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+			err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
+		} else {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	return &entity.CollectionFullUserMetricsResponse{
@@ -538,8 +575,15 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) (*entity.Collecti
 
 	isLiked, isDisliked, err := uc.collection_repo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
+		// if errors.Is(err, repository.ErrCollectionNotFound) {
+		// 	return nil, ErrNotFound
+		// }
+		if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+			err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
@@ -576,11 +620,16 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) (*entity.Collecti
 
 	user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(id, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return nil, ErrNotFound
+		if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+			err = uc.collection_repo.CreateCollectionUserMetrics(id, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
+		} else {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
 	return &entity.CollectionFullUserMetricsResponse{
@@ -661,11 +710,16 @@ func (uc *usecase) SearchCollectionByName(text string, userId uuid.UUID) ([]*ent
 
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserMetricsNotFound) {
+				err = uc.collection_repo.CreateCollectionUserMetrics(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 		totalCards, err := uc.collection_repo.GetCollectionTotal(collection.Id)
 		if err != nil {

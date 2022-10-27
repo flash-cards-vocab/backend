@@ -200,7 +200,7 @@ func (r *repository) IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bo
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, false, repository_intf.ErrCollectionNotFound
+			return false, false, repository_intf.ErrCollectionUserMetricsNotFound
 		}
 		return false, false, err
 	}
@@ -496,7 +496,7 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// return nil, repository_intf.ErrCollectionNotFound
+			return nil, repository_intf.ErrCollectionUserMetricsNotFound
 
 			return &entity.CollectionUserMetrics{
 				CollectionId: id,
