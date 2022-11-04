@@ -1,7 +1,6 @@
 package user_usecase
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -51,7 +50,7 @@ func New(userRepo repository.UserRepository) UseCase {
 // }
 
 // Create new user
-func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.UserWithToken, error) {
+func (uc *usecase) Register(user entity.User) (*entity.UserWithToken, error) {
 	// span, ctx := opentracing.StartSpanFromContext(ctx, "authUC.Register")
 	// defer span.Finish()
 
@@ -92,7 +91,7 @@ func (uc *usecase) Register(ctx context.Context, user entity.User) (*entity.User
 }
 
 // Login user, returns user model with jwt token
-func (uc *usecase) Login(ctx context.Context, user entity.UserLogin) (*entity.UserWithToken, error) {
+func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithToken, error) {
 	foundUser, err := uc.userRepo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, err
