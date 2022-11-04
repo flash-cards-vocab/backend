@@ -1,4 +1,4 @@
-package handler
+package handler_interfaces
 
 type SuccessResponse struct {
 	Data interface{} `json:"data"`
