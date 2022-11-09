@@ -9,6 +9,7 @@ import (
 
 var ErrCollectionNotFound = errors.New("loan request not found")
 var ErrCollectionUserMetricsNotFound = errors.New("collection user metrics not found")
+var ErrCollectionUserProgressNotFound = errors.New("collection user progress not found")
 
 type CollectionRepository interface {
 	GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error)

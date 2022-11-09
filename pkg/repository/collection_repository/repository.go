@@ -480,7 +480,7 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 				Mastered:     0,
 				Reviewing:    0,
 				Learning:     0,
-			}, nil
+			}, repository_intf.ErrCollectionUserProgressNotFound
 		}
 		return nil, err
 	}
@@ -496,14 +496,15 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repository_intf.ErrCollectionUserMetricsNotFound
+			// return nil, repository_intf.ErrCollectionUserMetricsNotFound
 
 			return &entity.CollectionUserMetrics{
 				CollectionId: id,
 				Liked:        false,
 				Disliked:     false,
 				Viewed:       false,
-			}, nil
+				Starred:      false,
+			}, repository_intf.ErrCollectionUserMetricsNotFound
 		}
 		return nil, err
 	}
