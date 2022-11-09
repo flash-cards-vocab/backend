@@ -180,11 +180,16 @@ func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity
 		}
 		collection_user_progress, err := uc.collection_repo.GetCollectionUserProgress(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repository.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repository.ErrCollectionUserProgressNotFound) {
+				err = uc.collection_repo.CreateCollectionUserProgress(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
 
 		collection_user_metrics, err := uc.collection_repo.GetCollectionUserMetrics(collection.Id, userId)
@@ -219,13 +224,13 @@ func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity
 			AuthorName:       collection_author.Name,
 			Topics:           collection.Topics,
 			TotalCards:       totalCards,
-			Starred:          collection_user_metrics.Starred,
 			Likes:            collection_metrics.Likes,
 			Dislikes:         collection_metrics.Dislikes,
 			Views:            collection_metrics.Views,
 			Mastered:         collection_user_progress.Mastered,
 			Reviewing:        collection_user_progress.Reviewing,
 			Learning:         collection_user_progress.Learning,
+			Starred:          collection_user_metrics.Starred,
 			IsLikedByUser:    collection_user_metrics.Liked,
 			IsDislikedByUser: collection_user_metrics.Disliked,
 			IsViewedByUser:   collection_user_metrics.Viewed,
