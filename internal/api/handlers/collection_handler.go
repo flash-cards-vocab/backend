@@ -34,7 +34,30 @@ func (h *handlerCollection) GetMyCollections(c *gin.Context) {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusInternalServerError, handler_interfaces.ErrorResponse{Message: err.Error()})
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+}
+
+func (h *handlerCollection) GetCollectionUserProgress(c *gin.Context) {
+	paramId := c.Param("id")
+	id, err := uuid.Parse(paramId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+	}
+	userCtx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+
+	data, err := h.collectionUsecase.GetCollectionUserProgress(id, userCtx.UserId)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
 	}
 }
@@ -265,8 +288,8 @@ func (h *handlerCollection) SearchCollectionByName(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
-		}
 	}
+}
 
 func (h *handlerCollection) CreateCollection(c *gin.Context) {
 	var createCollectionData entity.CreateCollectionRequest
