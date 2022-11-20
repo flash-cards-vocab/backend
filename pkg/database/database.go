@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/flash-cards-vocab/backend/config"
-	"github.com/flash-cards-vocab/backend/pkg/repository/card_repository"
-	"github.com/flash-cards-vocab/backend/pkg/repository/collection_repository"
-	"github.com/flash-cards-vocab/backend/pkg/repository/user_repository"
+	cardRepo "github.com/flash-cards-vocab/backend/pkg/repository/card_repository"
+	collectionRepo "github.com/flash-cards-vocab/backend/pkg/repository/collection_repository"
+	userRepo "github.com/flash-cards-vocab/backend/pkg/repository/user_repository"
 	gormPostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -54,17 +54,17 @@ func Connect(config *config.Config) (*Manager, error) {
 func (m *Manager) AutoMigrate() {
 	fmt.Println("auto migrating...")
 	m.DB.AutoMigrate(
-		card_repository.Card{},
-		card_repository.CardMetrics{},
-		card_repository.CardUserProgress{},
-		card_repository.CollectionCards{},
-		card_repository.CollectionUserProgress{},
-		collection_repository.Collection{},
-		collection_repository.CollectionCards{},
-		collection_repository.CollectionMetrics{},
-		collection_repository.CollectionUserMetrics{},
-		collection_repository.CollectionUserProgress{},
-		user_repository.User{},
+		cardRepo.Card{},
+		cardRepo.CardMetrics{},
+		cardRepo.CardUserProgress{},
+		cardRepo.CollectionCards{},
+		cardRepo.CollectionUserProgress{},
+		collectionRepo.Collection{},
+		collectionRepo.CollectionCards{},
+		collectionRepo.CollectionMetrics{},
+		collectionRepo.CollectionUserMetrics{},
+		collectionRepo.CollectionUserProgress{},
+		userRepo.User{},
 	)
 }
 

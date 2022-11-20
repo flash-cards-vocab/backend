@@ -10,28 +10,31 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/flash-cards-vocab/backend/app/repository"
+	repositoryIntf "github.com/flash-cards-vocab/backend/app/repository"
+	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type usecase struct {
-	card_repo   repository.CardRepository
-	gcs_client  *storage.Client
-	bucket_name string
-	env_prefix  string
+	cardRepo       repositoryIntf.CardRepository
+	collectionRepo repositoryIntf.CollectionRepository
+	gcsClient      *storage.Client
+	bucketName     string
+	envPrefix      string
 }
 
-func New(card_repo repository.CardRepository,
-	gcs_client *storage.Client,
-	bucket_name string,
-	env_prefix string,
+func New(cardRepo repositoryIntf.CardRepository, collectionRepo repositoryIntf.CollectionRepository,
+	gcsClient *storage.Client,
+	bucketName string,
+	envPrefix string,
 ) UseCase {
 	return &usecase{
-		card_repo:   card_repo,
-		gcs_client:  gcs_client,
-		bucket_name: bucket_name,
-		env_prefix:  env_prefix,
+		cardRepo:       cardRepo,
+		collectionRepo: collectionRepo,
+		gcsClient:      gcsClient,
+		bucketName:     bucketName,
+		envPrefix:      envPrefix,
 	}
 }
 
@@ -43,9 +46,9 @@ func (u *usecase) UploadCardImage(
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*50)
 	defer cancel()
 
-	filename_to_upload := location + "/" + strings.ReplaceAll(filename, " ", "+")
-	full_filename := "https://storage.googleapis.com/" + u.bucket_name + "/" + u.env_prefix + "/" + filename_to_upload
-	wc := u.gcs_client.Bucket(u.bucket_name).Object(u.env_prefix + "/" + filename_to_upload).NewWriter(ctx)
+	filenameToUpload := location + "/" + strings.ReplaceAll(filename, " ", "+")
+	fullFilename := "https://storage.googleapis.com/" + u.bucketName + "/" + u.envPrefix + "/" + filenameToUpload
+	wc := u.gcsClient.Bucket(u.bucketName).Object(u.envPrefix + "/" + filenameToUpload).NewWriter(ctx)
 	// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
 
 	if _, err := io.Copy(wc, file); err != nil {
@@ -60,9 +63,9 @@ func (u *usecase) UploadCardImage(
 }
 
 func (uc *usecase) AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error {
-	err := uc.card_repo.AssignCardToCollection(collectionId, cardId)
+	err := uc.cardRepo.AssignCardToCollection(collectionId, cardId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
+		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
@@ -72,26 +75,26 @@ func (uc *usecase) AddExistingCardToCollection(collectionId uuid.UUID, cardId uu
 
 }
 
-func (uc *usecase) KnowCard(collectionId, cardId, userId uuid.UUID) error {
-	err := uc.card_repo.KnowCard(collectionId, cardId, userId)
+func (uc *usecase) KnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error) {
+	err := uc.cardRepo.KnowCard(collectionId, cardId, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return ErrNotFound
+		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+			return nil, ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 	return nil
 }
 
-func (uc *usecase) DontKnowCard(collectionId, cardId, userId uuid.UUID) error {
-	err := uc.card_repo.DontKnowCard(collectionId, cardId, userId)
+func (uc *usecase) DontKnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error) {
+	err := uc.cardRepo.DontKnowCard(collectionId, cardId, userId)
 	if err != nil {
-		if errors.Is(err, repository.ErrCollectionNotFound) {
-			return ErrNotFound
+		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+			return nil, ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 	return nil
 }
