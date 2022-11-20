@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mime/multipart"
 
+	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
 )
 
@@ -22,4 +23,5 @@ type UseCase interface {
 	AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error
 	SearchByWord(word string, userId uuid.UUID) ([]*entity.Card, error)
 	KnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error)
+	DontKnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error)
 }

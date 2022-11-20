@@ -126,7 +126,20 @@ func (uc *usecase) KnowCard(collectionId, cardId, userId uuid.UUID) (*entity.Col
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-	return nil
+	collUserProgr, err := uc.collectionRepo.GetCollectionUserProgress(collectionId, userId)
+	if err != nil {
+		if errors.Is(err, repositoryIntf.ErrCollectionUserProgressNotFound) {
+			err = uc.collectionRepo.CreateCollectionUserProgress(collectionId, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
+		} else {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		}
+	}
+	return collUserProgr, nil
 }
 
 func (uc *usecase) DontKnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error) {
@@ -138,5 +151,18 @@ func (uc *usecase) DontKnowCard(collectionId, cardId, userId uuid.UUID) (*entity
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-	return nil
+	collUserProgr, err := uc.collectionRepo.GetCollectionUserProgress(collectionId, userId)
+	if err != nil {
+		if errors.Is(err, repositoryIntf.ErrCollectionUserProgressNotFound) {
+			err = uc.collectionRepo.CreateCollectionUserProgress(collectionId, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+			}
+		} else {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		}
+	}
+	return collUserProgr, nil
 }
