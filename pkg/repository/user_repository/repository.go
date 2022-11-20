@@ -3,7 +3,7 @@ package user_repository
 import (
 	"errors"
 
-	repository_intf "github.com/flash-cards-vocab/backend/app/repository"
+	repositoryIntf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -14,7 +14,7 @@ type repository struct {
 	tableName string
 }
 
-func New(db *gorm.DB) repository_intf.UserRepository {
+func New(db *gorm.DB) repositoryIntf.UserRepository {
 	return &repository{db: db, tableName: "users"}
 }
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	repository_intf "github.com/flash-cards-vocab/backend/app/repository"
+	repositoryIntf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -14,18 +14,18 @@ type repository struct {
 	db *gorm.DB
 }
 
-func New(db *gorm.DB) repository_intf.CollectionRepository {
+func New(db *gorm.DB) repositoryIntf.CollectionRepository {
 	return &repository{db}
 }
 
-func (r *repository) GetMyCollections(user_id uuid.UUID) ([]*entity.Collection, error) {
+func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
 		Raw(`
 			SELECT * FROM collection
 			WHERE author_id = ?
 			AND deleted_at IS null
-		`, user_id).
+		`, userId).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -38,7 +38,7 @@ func (r *repository) GetMyCollections(user_id uuid.UUID) ([]*entity.Collection, 
 	return resp, nil
 }
 
-func (r *repository) GetCollectionTotal(collection_id uuid.UUID) (int, error) {
+func (r *repository) GetCollectionTotal(collectionId uuid.UUID) (int, error) {
 	var total *int
 	err := r.db.
 		Raw(`
@@ -47,7 +47,7 @@ func (r *repository) GetCollectionTotal(collection_id uuid.UUID) (int, error) {
 			INNER JOIN collection ON collection_cards.collection_id = collection.id
 			WHERE collection.id=?
 			AND card.deleted_at IS null
-		`, collection_id).
+		`, collectionId).
 		Scan(&total).
 		Error
 	if err != nil {
@@ -57,14 +57,16 @@ func (r *repository) GetCollectionTotal(collection_id uuid.UUID) (int, error) {
 	return *total, nil
 }
 
-func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
+func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID, limit, offset int) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
 		Raw(`
 			SELECT * FROM collection
 			WHERE author_id <> ? 
-			AND deleted_at IS null limit 10
-		`, userId).
+			AND deleted_at IS null 
+			LIMIT ?
+			OFFSET ?
+		`, userId, limit, offset).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -200,7 +202,7 @@ func (r *repository) IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bo
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, false, repository_intf.ErrCollectionUserMetricsNotFound
+			return false, false, repositoryIntf.ErrCollectionUserMetricsNotFound
 		}
 		return false, false, err
 	}
@@ -458,7 +460,7 @@ func (r *repository) GetCollectionMetrics(id uuid.UUID) (*entity.CollectionMetri
 				Likes:        0,
 				Dislikes:     0,
 				Views:        0,
-			}, nil
+			}, repositoryIntf.ErrCollectionMetricsNotFound
 		}
 		return nil, err
 	}
@@ -474,13 +476,15 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &entity.CollectionUserProgress{
-				CollectionId: id,
-				UserId:       userId,
-				Mastered:     0,
-				Reviewing:    0,
-				Learning:     0,
-			}, repository_intf.ErrCollectionUserProgressNotFound
+			return nil, repositoryIntf.ErrCollectionUserProgressNotFound
+
+			// &entity.CollectionUserProgress{
+			// 	CollectionId: id,
+			// 	UserId:       userId,
+			// 	Mastered:     0,
+			// 	Reviewing:    0,
+			// 	Learning:     0,
+			// }
 		}
 		return nil, err
 	}
@@ -496,7 +500,7 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// return nil, repository_intf.ErrCollectionUserMetricsNotFound
+			// return nil, repositoryIntf.ErrCollectionUserMetricsNotFound
 
 			return &entity.CollectionUserMetrics{
 				CollectionId: id,
@@ -504,7 +508,7 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 				Disliked:     false,
 				Viewed:       false,
 				Starred:      false,
-			}, repository_intf.ErrCollectionUserMetricsNotFound
+			}, repositoryIntf.ErrCollectionUserMetricsNotFound
 		}
 		return nil, err
 	}

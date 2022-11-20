@@ -9,21 +9,21 @@ import (
 )
 
 func GetAuthContext(c *gin.Context) (*entity.AuthContext, error) {
-	user_ctx, ok := c.Get("Id")
+	userCtx, ok := c.Get("Id")
 	if !ok {
 		return nil, errors.New("user Id not found in context")
 	}
-	user_id, err := uuid.Parse(user_ctx.(string))
+	userId, err := uuid.Parse(userCtx.(string))
 	if err != nil {
 		return nil, errors.New("user Id is not a uuid format")
 	}
-	email_ctx, ok := c.Get("Email")
+	emailCtx, ok := c.Get("Email")
 	if !ok {
 		return nil, errors.New("email not found in context")
 	}
 
 	return &entity.AuthContext{
-		UserId: user_id,
-		Email:  email_ctx.(string),
+		UserId: userId,
+		Email:  emailCtx.(string),
 	}, nil
 }

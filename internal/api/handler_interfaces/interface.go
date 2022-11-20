@@ -18,6 +18,7 @@ type RestCollectionHandler interface {
 	CreateCollection(c *gin.Context)
 	UpdateCollectionUserProgress(c *gin.Context)
 	StarCollectionById(c *gin.Context)
+	GetCollectionUserProgress(c *gin.Context)
 }
 
 type RestUserHandler interface {
@@ -28,6 +29,7 @@ type RestUserHandler interface {
 type RestCardHandler interface {
 	AddExistingCardToCollection(c *gin.Context)
 	UploadCardImage(c *gin.Context)
+	SearchByWord(c *gin.Context)
 	KnowCard(c *gin.Context)
 	DontKnowCard(c *gin.Context)
 }

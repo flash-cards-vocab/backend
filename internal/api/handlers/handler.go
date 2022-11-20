@@ -4,15 +4,15 @@ import (
 	"os"
 
 	"github.com/flash-cards-vocab/backend/app/usecase"
-	"github.com/flash-cards-vocab/backend/internal/api/handler_interfaces"
+	handlerIntf "github.com/flash-cards-vocab/backend/internal/api/handler_interfaces"
 	"github.com/flash-cards-vocab/backend/pkg/application"
 )
 
 type Handler struct {
 	App               *application.Application
-	CollectionHandler handler_interfaces.RestCollectionHandler
-	UserHandler       handler_interfaces.RestUserHandler
-	CardHandler       handler_interfaces.RestCardHandler
+	CollectionHandler handlerIntf.RestCollectionHandler
+	UserHandler       handlerIntf.RestUserHandler
+	CardHandler       handlerIntf.RestCardHandler
 }
 
 func Get(app *application.Application) *Handler {
