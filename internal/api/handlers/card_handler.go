@@ -58,7 +58,26 @@ func (h *handlerCard) UploadCardImage(c *gin.Context) {
 	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: cloudFilename})
 }
 
+func (h *handlerCard) SearchByWord(c *gin.Context) {
+	userCtx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+	text := c.Param("query")
+
+	data, err := h.cardUsecase.SearchByWord(text, userCtx.UserId)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+
 }
+
 func (h *handlerCard) KnowCard(c *gin.Context) {
 	paramCardId := c.Param("card_id")
 	cardId, err := uuid.Parse(paramCardId)
@@ -77,7 +96,6 @@ func (h *handlerCard) KnowCard(c *gin.Context) {
 	}
 
 	data, err := h.cardUsecase.KnowCard(collectionId, cardId, userCtx.UserId)
-	fmt.Println(data)
 	if err == nil {
 		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
 	} else {
@@ -107,7 +125,6 @@ func (h *handlerCard) DontKnowCard(c *gin.Context) {
 	}
 
 	data, err := h.cardUsecase.DontKnowCard(collectionId, cardId, userCtx.UserId)
-	fmt.Println(data)
 	if err == nil {
 		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
 	} else {

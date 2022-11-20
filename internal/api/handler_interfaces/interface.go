@@ -29,6 +29,7 @@ type RestUserHandler interface {
 type RestCardHandler interface {
 	AddExistingCardToCollection(c *gin.Context)
 	UploadCardImage(c *gin.Context)
+	SearchByWord(c *gin.Context)
 	KnowCard(c *gin.Context)
 	DontKnowCard(c *gin.Context)
 }
