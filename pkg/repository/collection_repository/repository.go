@@ -57,14 +57,16 @@ func (r *repository) GetCollectionTotal(collectionId uuid.UUID) (int, error) {
 	return *total, nil
 }
 
-func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
+func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID, limit, offset int) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
 		Raw(`
 			SELECT * FROM collection
 			WHERE author_id <> ? 
-			AND deleted_at IS null limit 10
-		`, userId).
+			AND deleted_at IS null 
+			LIMIT ?
+			OFFSET ?
+		`, userId, limit, offset).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -200,7 +202,7 @@ func (r *repository) IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bo
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, false, repository_intf.ErrCollectionUserMetricsNotFound
+			return false, false, repositoryIntf.ErrCollectionUserMetricsNotFound
 		}
 		return false, false, err
 	}
@@ -476,6 +478,13 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, repositoryIntf.ErrCollectionUserProgressNotFound
 
+			// &entity.CollectionUserProgress{
+			// 	CollectionId: id,
+			// 	UserId:       userId,
+			// 	Mastered:     0,
+			// 	Reviewing:    0,
+			// 	Learning:     0,
+			// }
 		}
 		return nil, err
 	}
@@ -491,7 +500,7 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// return nil, repository_intf.ErrCollectionUserMetricsNotFound
+			// return nil, repositoryIntf.ErrCollectionUserMetricsNotFound
 
 			return &entity.CollectionUserMetrics{
 				CollectionId: id,

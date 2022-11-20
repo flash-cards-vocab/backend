@@ -163,10 +163,13 @@ func (uc *usecase) GetCollectionFullUserMetrics(id, userId uuid.UUID) (*entity.C
 	return collectionResponse, nil
 }
 
-func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.UserCollectionResponse, error) {
-	collection_reponses := []*entity.UserCollectionResponse{}
-	var err error
-	collections, err := uc.collection_repo.GetRecommendedCollectionsPreview(userId)
+func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID, page, size int) ([]*entity.UserCollectionResponse, error) {
+	collectionResponses := []*entity.UserCollectionResponse{}
+	// var err error
+	limit := size
+	offset := (page - 1) * size
+
+	collections, err := uc.collectionRepo.GetRecommendedCollectionsPreview(userId, limit, offset)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return nil, ErrNotFound

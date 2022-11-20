@@ -42,7 +42,15 @@ func (h *handlerCollection) GetMyCollections(c *gin.Context) {
 func (h *handlerCollection) GetRecommendedCollectionsPreview(c *gin.Context) {
 	userCtx, err := helpers.GetAuthContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, handler_interfaces.ErrorResponse{Message: "User id not found"})
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil || size < 1 {
+		size = 5
 	}
 
 	data, err := h.collectionUsecase.GetRecommendedCollectionsPreview(userCtx.UserId, page, size)

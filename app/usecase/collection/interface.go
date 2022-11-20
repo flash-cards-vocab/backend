@@ -14,7 +14,7 @@ var ErrForbiddenSelfRequest = errors.New("Self request is forbidden")
 
 type UseCase interface {
 	GetMyCollections(userId uuid.UUID) ([]*entity.UserCollectionResponse, error)
-	GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.UserCollectionResponse, error)
+	GetRecommendedCollectionsPreview(userId uuid.UUID, page, size int) ([]*entity.UserCollectionResponse, error)
 	GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.UserCollectionResponse, error)
 	GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.UserCollectionResponse, error)
 	GetCollectionWithCards(id, userId uuid.UUID, page, size int) (*entity.GetCollectionWithCardsResponse, error)

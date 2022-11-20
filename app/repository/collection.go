@@ -10,11 +10,12 @@ import (
 var ErrCollectionNotFound = errors.New("loan request not found")
 var ErrCollectionUserMetricsNotFound = errors.New("collection user metrics not found")
 var ErrCollectionUserProgressNotFound = errors.New("collection user progress not found")
+var ErrCollectionMetricsNotFound = errors.New("collection metrics not found")
 
 type CollectionRepository interface {
 	GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error)
 	GetCollectionTotal(collection_id uuid.UUID) (int, error)
-	GetRecommendedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
+	GetRecommendedCollectionsPreview(userId uuid.UUID, limit, offset int) ([]*entity.Collection, error)
 	GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
 	GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
 	IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bool, bool, error)
