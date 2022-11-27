@@ -476,15 +476,15 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, repositoryIntf.ErrCollectionUserProgressNotFound
+			// return nil, repositoryIntf.ErrCollectionUserProgressNotFound
 
-			// &entity.CollectionUserProgress{
-			// 	CollectionId: id,
-			// 	UserId:       userId,
-			// 	Mastered:     0,
-			// 	Reviewing:    0,
-			// 	Learning:     0,
-			// }
+			return &entity.CollectionUserProgress{ //returning null struct because user didn't start learning with the collection yet and should see all zeros
+				CollectionId: id,
+				UserId:       userId,
+				Mastered:     0,
+				Reviewing:    0,
+				Learning:     0,
+			}, repositoryIntf.ErrCollectionUserProgressNotFound
 		}
 		return nil, err
 	}
