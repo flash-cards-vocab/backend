@@ -35,12 +35,14 @@ import (
 // }
 
 type usecase struct {
-	userRepo repository.UserRepository
+	userRepo    repository.UserRepository
+	companyRepo repository.CompanyRepository
 }
 
-func New(userRepo repository.UserRepository) UseCase {
+func New(userRepo repository.UserRepository, companyRepo repository.CompanyRepository) UseCase {
 	return &usecase{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		companyRepo: companyRepo,
 	}
 }
 
@@ -50,11 +52,11 @@ func New(userRepo repository.UserRepository) UseCase {
 // }
 
 // Create new user
-func (uc *usecase) Register(user entity.User) (*entity.UserWithToken, error) {
+func (uc *usecase) Register(userReg entity.UserRegistration) (*entity.UserWithAuthToken, error) {
 	// span, ctx := opentracing.StartSpanFromContext(ctx, "authUC.Register")
 	// defer span.Finish()
 
-	existsUser, err := uc.userRepo.CheckIfUserExistsByEmail(user.Email)
+	existsUser, err := uc.userRepo.CheckIfUserExistsByEmail(userReg.Email)
 	if err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error1")
@@ -64,11 +66,16 @@ func (uc *usecase) Register(user entity.User) (*entity.UserWithToken, error) {
 		return nil, fmt.Errorf("%w: %v", ErrUserExistsAlready, "User exists already")
 	}
 
-	if err = user.PrepareCreate(); err != nil {
+	if err = userReg.PrepareCreate(); err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Error while preparing user data to be created")
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Error while preparing userReg data to be created")
 	}
 
+	user := entity.User{
+		Name:     userReg.Name,
+		Email:    userReg.Email,
+		Password: userReg.Password,
+	}
 	createdUser, err := uc.userRepo.CreateUser(user)
 	if err != nil {
 		return nil, err
@@ -84,14 +91,19 @@ func (uc *usecase) Register(user entity.User) (*entity.UserWithToken, error) {
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error3")
 	}
 
-	return &entity.UserWithToken{
+	err = uc.companyRepo.CreateUserCompanySubscription(createdUser.Id, userReg.Token)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Some problem with referral token")
+	}
+
+	return &entity.UserWithAuthToken{
 		User:  createdUser,
 		Token: token,
 	}, nil
 }
 
 // Login user, returns user model with jwt token
-func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithToken, error) {
+func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithAuthToken, error) {
 	foundUser, err := uc.userRepo.GetUserByEmail(user.Email)
 	if err != nil {
 		return nil, err
@@ -113,7 +125,7 @@ func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithToken, error) {
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
-	return &entity.UserWithToken{
+	return &entity.UserWithAuthToken{
 		User:  foundUser,
 		Token: token,
 	}, nil

@@ -19,7 +19,7 @@ func NewUserHandler(userUsecase userUC.UseCase) handlerIntf.RestUserHandler {
 }
 
 func (h *handlerUser) Register(c *gin.Context) {
-	var newUserData entity.User
+	var newUserData entity.UserRegistration
 	err := c.ShouldBindJSON(&newUserData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
