@@ -142,3 +142,44 @@ func (c Card) ToArrayEntity(cards []*Card) []*entity.Card {
 	}
 	return res
 }
+
+type CardForUser struct {
+	Id         uuid.UUID `gorm:"column:id"`
+	Word       string    `gorm:"column:word"`
+	ImageUrl   string    `gorm:"column:image_url"`
+	Definition string    `gorm:"column:definition"`
+	Sentence   string    `gorm:"column:sentence"`
+	Antonyms   string    `gorm:"column:antonyms"`
+	Synonyms   string    `gorm:"column:synonyms"`
+	Status     string    `gorm:"column:status"`
+}
+
+func (c *CardForUser) ToEntity() *entity.CardForUser {
+	return &entity.CardForUser{
+		Id:         c.Id,
+		Word:       c.Word,
+		ImageUrl:   c.ImageUrl,
+		Definition: c.Definition,
+		Sentence:   c.Sentence,
+		Antonyms:   c.Antonyms,
+		Synonyms:   c.Synonyms,
+		Status:     c.Status,
+	}
+}
+
+func (c CardForUser) ToArrayEntity(cards []*CardForUser) []*entity.CardForUser {
+	res := []*entity.CardForUser{}
+	for _, card := range cards {
+		res = append(res, &entity.CardForUser{
+			Id:         card.Id,
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			Status:     card.Status,
+		})
+	}
+	return res
+}

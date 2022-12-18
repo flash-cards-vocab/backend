@@ -56,11 +56,11 @@ type CreateCollectionRequest struct {
 }
 
 type GetCollectionWithCardsResponse struct {
-	Id         uuid.UUID `json:"id,omitempty"`
-	Name       string    `json:"name,omitempty"`
-	Mastered   uint32    `json:"mastered"`
-	Reviewing  uint32    `json:"reviewing"`
-	Learning   uint32    `json:"learning"`
-	TotalCards int       `json:"totalCards,omitempty"`
-	Cards      []*Card   `json:"cards,omitempty"`
+	Id         uuid.UUID      `json:"id,omitempty"`
+	Name       string         `json:"name,omitempty"`
+	Mastered   uint32         `json:"mastered"`
+	Reviewing  uint32         `json:"reviewing"`
+	Learning   uint32         `json:"learning"`
+	TotalCards int            `json:"totalCards,omitempty"`
+	Cards      []*CardForUser `json:"cards,omitempty"`
 }

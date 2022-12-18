@@ -441,9 +441,9 @@ func (uc *usecase) GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Use
 	return collectionResponses, err
 }
 
-func (uc *usecase) GetCollectionWithCards(id, userId uuid.UUID, page, size int) (*entity.GetCollectionWithCardsResponse, error) {
+func (uc *usecase) GetCollectionWithCards(collectionId, userId uuid.UUID, page, size int) (*entity.GetCollectionWithCardsResponse, error) {
 	var err error
-	collection, err := uc.collectionRepo.GetCollection(id)
+	collection, err := uc.collectionRepo.GetCollection(collectionId)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return nil, ErrNotFound
@@ -451,7 +451,7 @@ func (uc *usecase) GetCollectionWithCards(id, userId uuid.UUID, page, size int) 
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-	collectionProgress, err := uc.collectionRepo.GetCollectionUserProgress(id, userId)
+	collectionProgress, err := uc.collectionRepo.GetCollectionUserProgress(collectionId, userId)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return nil, ErrNotFound
@@ -462,7 +462,7 @@ func (uc *usecase) GetCollectionWithCards(id, userId uuid.UUID, page, size int) 
 
 	limit := size
 	offset := (page - 1) * size
-	cards, err := uc.collectionRepo.GetCollectionCards(id, limit, offset)
+	cards, err := uc.collectionRepo.GetCollectionCards(collectionId, userId, limit, offset)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return nil, ErrNotFound
@@ -477,7 +477,7 @@ func (uc *usecase) GetCollectionWithCards(id, userId uuid.UUID, page, size int) 
 		Reviewing:  collectionProgress.Reviewing,
 		Learning:   collectionProgress.Learning,
 		TotalCards: cards.Total,
-		Cards:      cards.Cards,
+		Cards:      cards.CardForUser,
 	}
 	return collectionResponses, nil
 }

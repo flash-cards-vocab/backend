@@ -532,23 +532,25 @@ func (r *repository) GetCollection(id uuid.UUID) (*entity.Collection, error) {
 	return data.ToEntity(), nil
 }
 
-func (r *repository) GetCollectionCards(id uuid.UUID, limit, offset int) (*entity.CardsPagination, error) {
-	cards := []*Card{}
+func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, offset int) (*entity.CardForUserPagination, error) {
+	cards := []*CardForUser{}
 	err := r.db.
 		Raw(`
-			SELECT card.* FROM card
+			SELECT card.*, card_user_progress.status FROM card
 			INNER JOIN collection_cards ON collection_cards.card_id = card.id
 			INNER JOIN collection ON collection_cards.collection_id = collection.id
+			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
 			WHERE collection.id=?
 			AND card.deleted_at IS null
 			LIMIT ?
 			OFFSET ?
-		`, id, limit, offset).
+		`, userId, collectionId, limit, offset).
 		Find(&cards).
 		Error
 	if err != nil {
 		return nil, err
 	}
+
 	var total int
 	err = r.db.Raw(`
 		SELECT COUNT(*) FROM card
@@ -556,12 +558,27 @@ func (r *repository) GetCollectionCards(id uuid.UUID, limit, offset int) (*entit
 		INNER JOIN collection ON collection_cards.collection_id = collection.id
 		WHERE collection.id=?
 		AND card.deleted_at IS null
-	`, id).First(&total).Error
-	data := &entity.CardsPagination{
-		Cards: Card{}.ToArrayEntity(cards),
-		Page:  limit,
-		Size:  offset,
-		Total: total,
+	`, collectionId).First(&total).Error
+
+	res := []*entity.CardForUser{}
+	for _, card := range cards {
+		res = append(res, &entity.CardForUser{
+			Id:         card.Id,
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			Status:     card.Status,
+		})
+	}
+
+	data := &entity.CardForUserPagination{
+		CardForUser: CardForUser{}.ToArrayEntity(cards),
+		Page:        limit,
+		Size:        offset,
+		Total:       total,
 	}
 	return data, nil
 

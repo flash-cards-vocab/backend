@@ -36,7 +36,5 @@ type CollectionRepository interface {
 	CreateCollectionUserMetrics(id, userId uuid.UUID) error
 	CreateCollectionUserProgress(id, userId uuid.UUID) error
 	GetCollection(id uuid.UUID) (*entity.Collection, error)
-	GetCollectionCards(id uuid.UUID, limit, offset int) (*entity.CardsPagination, error)
-
-	// CreateCollectionUserInteraction()
+	GetCollectionCards(collectionId, userId uuid.UUID, limit, offset int) (*entity.CardForUserPagination, error)
 }
