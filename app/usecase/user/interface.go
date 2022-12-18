@@ -14,6 +14,6 @@ var ErrForbiddenSelfRequest = errors.New("Self request is forbidden")
 var ErrUserPasswordMismatch = errors.New("User password is Incorrect")
 
 type UseCase interface {
-	Register(user entity.User) (*entity.UserWithToken, error)
-	Login(user entity.UserLogin) (*entity.UserWithToken, error)
+	Register(user entity.UserRegistration) (*entity.UserWithAuthToken, error)
+	Login(user entity.UserLogin) (*entity.UserWithAuthToken, error)
 }

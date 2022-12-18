@@ -14,9 +14,16 @@ type User struct {
 	Password string    `json:"password,omitempty"`
 }
 
-type UserWithToken struct {
+type UserWithAuthToken struct {
 	User  *User
 	Token string
+}
+
+type UserRegistration struct {
+	Name     string    `json:"name,omitempty"`
+	Email    string    `json:"email,omitempty"`
+	Password string    `json:"password,omitempty"`
+	Token    uuid.UUID `json:"token,omitempty"`
 }
 
 type UserLogin struct {
@@ -24,7 +31,7 @@ type UserLogin struct {
 	Password string `json:"password"`
 }
 
-func (u *User) HashEncryptPassword() error {
+func (u *UserRegistration) HashEncryptPassword() error {
 	encryptedPwd, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -41,7 +48,7 @@ func (u *User) ComparePasswords(password string) error {
 	return nil
 }
 
-func (u *User) PrepareCreate() error {
+func (u *UserRegistration) PrepareCreate() error {
 	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.Password = strings.TrimSpace(u.Password)
 
