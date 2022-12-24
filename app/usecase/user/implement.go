@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/flash-cards-vocab/backend/pkg/helpers"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 
@@ -35,14 +36,24 @@ import (
 // }
 
 type usecase struct {
-	userRepo    repository.UserRepository
-	companyRepo repository.CompanyRepository
+	userRepo       repository.UserRepository
+	companyRepo    repository.CompanyRepository
+	collectionRepo repository.CollectionRepository
+	cardRepo       repository.CardRepository
 }
 
-func New(userRepo repository.UserRepository, companyRepo repository.CompanyRepository) UseCase {
+func New(
+	userRepo repository.UserRepository,
+	companyRepo repository.CompanyRepository,
+	collectionRepo repository.CollectionRepository,
+	cardRepo repository.CardRepository,
+
+) UseCase {
 	return &usecase{
-		userRepo:    userRepo,
-		companyRepo: companyRepo,
+		userRepo:       userRepo,
+		companyRepo:    companyRepo,
+		collectionRepo: collectionRepo,
+		cardRepo:       cardRepo,
 	}
 }
 
@@ -129,6 +140,47 @@ func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithAuthToken, erro
 		User:  foundUser,
 		Token: token,
 	}, nil
+}
+
+func (uc *usecase) GetProfile(userId uuid.UUID) (*entity.ProfileInfoResp, error) {
+	personalInfo, err := uc.userRepo.GetUserById(userId)
+	if err != nil {
+		// if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+		// 	return nil, ErrNotFound
+		// }
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	collectionsStatistics, err := uc.collectionRepo.GetUserCollectionsStatistics(userId)
+	if err != nil {
+		// if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+		// 	return nil, ErrNotFound
+		// }
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	cardsStatistics, err := uc.cardRepo.GetUserCardsStatistics(userId)
+	if err != nil {
+		// if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+		// 	return nil, ErrNotFound
+		// }
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	userProfile := &entity.ProfileInfoResp{
+		Name:               personalInfo.Name,
+		Email:              personalInfo.Email,
+		CollectionsCreated: collectionsStatistics.CollectionsCreated,
+		CardsCreated:       cardsStatistics.CardsCreated,
+		CardsMastered:      cardsStatistics.CardsMastered,
+		CardsReviewing:     cardsStatistics.CardsReviewing,
+		CardsLearning:      cardsStatistics.CardsLearning,
+	}
+	return userProfile, nil
+
 }
 
 // Update existing user

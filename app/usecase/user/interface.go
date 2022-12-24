@@ -3,6 +3,8 @@ package user_usecase
 import (
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/flash-cards-vocab/backend/entity"
 )
 
@@ -16,4 +18,5 @@ var ErrUserPasswordMismatch = errors.New("User password is Incorrect")
 type UseCase interface {
 	Register(user entity.UserRegistration) (*entity.UserWithAuthToken, error)
 	Login(user entity.UserLogin) (*entity.UserWithAuthToken, error)
+	GetProfile(userId uuid.UUID) (*entity.ProfileInfoResp, error)
 }

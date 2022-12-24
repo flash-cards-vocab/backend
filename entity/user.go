@@ -14,6 +14,29 @@ type User struct {
 	Password string    `json:"password,omitempty"`
 }
 
+type ProfileInfoResp struct {
+	Name               string `json:"name,omitempty"`
+	Email              string `json:"email,omitempty"`
+	CollectionsCreated uint32 `json:"collectionsCreated,omitempty"`
+	CardsCreated       uint32 `json:"cardsCreated,omitempty"`
+	CardsMastered      uint32 `json:"cardsMastered,omitempty"`
+	CardsReviewing     uint32 `json:"cardsReviewing,omitempty"`
+	CardsLearning      uint32 `json:"cardsLearning,omitempty"`
+	// CollectionsLiked
+	// CollectionsDisliked
+	// CollectionsStarred
+}
+
+type UserCardStatistics struct {
+	CardsCreated   uint32 `json:"cardsCreated,omitempty"`
+	CardsMastered  uint32 `json:"cardsMastered,omitempty"`
+	CardsReviewing uint32 `json:"cardsReviewing,omitempty"`
+	CardsLearning  uint32 `json:"cardsLearning,omitempty"`
+}
+type UserCollectionStatistics struct {
+	CollectionsCreated uint32 `json:"collectionsCreated,omitempty"`
+}
+
 type UserWithAuthToken struct {
 	User  *User
 	Token string

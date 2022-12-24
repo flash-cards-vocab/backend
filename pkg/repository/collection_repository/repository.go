@@ -38,6 +38,26 @@ func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, e
 	return resp, nil
 }
 
+func (r *repository) GetUserCollectionsStatistics(userId uuid.UUID) (*entity.UserCollectionStatistics, error) {
+	// panic("not implemented")
+	var collectionsCreated uint32
+	err := r.db.
+		Raw(`
+			SELECT COUNT(*) FROM collection
+			WHERE author_id=?
+			AND deleted_at IS null
+		`, userId).
+		Scan(&collectionsCreated).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.UserCollectionStatistics{
+		CollectionsCreated: collectionsCreated,
+	}, nil
+}
+
 func (r *repository) GetCollectionTotal(collectionId uuid.UUID) (int, error) {
 	var total *int
 	err := r.db.

@@ -24,6 +24,7 @@ type RestCollectionHandler interface {
 type RestUserHandler interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
+	GetProfile(c *gin.Context)
 }
 
 type RestCardHandler interface {

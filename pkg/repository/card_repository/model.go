@@ -98,3 +98,9 @@ func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
 		Learning:     c.Learning,
 	}
 }
+
+type UserCardsStatistics struct {
+	Mastered  uint32 `gorm:"column:mastered"`
+	Reviewing uint32 `gorm:"column:reviewing"`
+	Learning  uint32 `gorm:"column:learning"`
+}
