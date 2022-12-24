@@ -18,6 +18,7 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	user := v1.Group("/user")
 	user.POST("/login", h.UserHandler.Login)
 	user.POST("/register", h.UserHandler.Register)
+	user.GET("/profile", middleware.AuthorizeJWT, h.UserHandler.GetProfile)
 
 	// Collection routes
 	collection := v1.Group("/collection")

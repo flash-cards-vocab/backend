@@ -15,4 +15,5 @@ type CardRepository interface {
 	AssignCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error
 	KnowCard(collectionId, cardId, userId uuid.UUID) error
 	DontKnowCard(collectionId, cardId, userId uuid.UUID) error
+	GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardStatistics, error)
 }

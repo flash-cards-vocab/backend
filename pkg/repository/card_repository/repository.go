@@ -35,6 +35,31 @@ func (r *repository) CreateSingleCard(card entity.Card) error {
 	return r.db.Table(r.tableName).Create(data).Error
 }
 
+func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardStatistics, error) {
+	var cardStatistics *UserCardsStatistics
+	err := r.db.
+		Raw(`
+		SELECT
+		COUNT(*) FILTER (WHERE status='mastered') AS mastered,
+		COUNT(*) FILTER (WHERE status='reviewing') AS reviewing,
+		COUNT(*) FILTER (WHERE status='learning') AS learning
+		FROM card_user_progress
+		WHERE user_id=?`, userId).
+		Scan(&cardStatistics).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.UserCardStatistics{
+		CardsCreated:   0,
+		CardsMastered:  cardStatistics.Mastered,
+		CardsReviewing: cardStatistics.Reviewing,
+		CardsLearning:  cardStatistics.Learning,
+	}, nil
+
+}
+
 func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity.Card, userId uuid.UUID) error {
 	tx := r.db.Begin()
 	cardsModels := []*Card{}

@@ -7,6 +7,7 @@ import (
 	userUC "github.com/flash-cards-vocab/backend/app/usecase/user"
 	"github.com/flash-cards-vocab/backend/entity"
 	handlerIntf "github.com/flash-cards-vocab/backend/internal/api/handler_interfaces"
+	"github.com/flash-cards-vocab/backend/pkg/helpers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,23 @@ type handlerUser struct {
 
 func NewUserHandler(userUsecase userUC.UseCase) handlerIntf.RestUserHandler {
 	return &handlerUser{userUsecase: userUsecase}
+}
+
+func (h *handlerUser) GetProfile(c *gin.Context) {
+	userCtx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+
+	data, err := h.userUsecase.GetProfile(userCtx.UserId)
+	if err != nil {
+		if errors.Is(err, userUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
 }
 
 func (h *handlerUser) Register(c *gin.Context) {

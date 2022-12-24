@@ -37,4 +37,5 @@ type CollectionRepository interface {
 	CreateCollectionUserProgress(id, userId uuid.UUID) error
 	GetCollection(id uuid.UUID) (*entity.Collection, error)
 	GetCollectionCards(collectionId, userId uuid.UUID, limit, offset int) (*entity.CardForUserPagination, error)
+	GetUserCollectionsStatistics(userId uuid.UUID) (*entity.UserCollectionStatistics, error)
 }
