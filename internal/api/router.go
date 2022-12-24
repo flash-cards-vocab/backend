@@ -35,6 +35,7 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	collection.GET("/search/:query", middleware.AuthorizeJWT, h.CollectionHandler.SearchCollectionByName)
 	collection.POST("/create", middleware.AuthorizeJWT, h.CollectionHandler.CreateCollection)
 	collection.PUT("/update-user-progress/:id", middleware.AuthorizeJWT, h.CollectionHandler.UpdateCollectionUserProgress)
+	collection.POST("/upload-collection-with-file", middleware.AuthorizeJWT, h.CollectionHandler.UploadCollectionWithFile)
 
 	// Card routes
 	card := v1.Group("/card")

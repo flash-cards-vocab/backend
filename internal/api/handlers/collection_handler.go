@@ -321,3 +321,32 @@ func (h *handlerCollection) CreateCollection(c *gin.Context) {
 func (h *handlerCollection) UpdateCollectionUserProgress(c *gin.Context) {
 	panic("not implemented")
 }
+
+func (h *handlerCollection) UploadCollectionWithFile(c *gin.Context) {
+	userCtx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+
+	file, handler, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "ERROR HERE1" + err.Error()})
+		return
+	}
+	defer file.Close()
+	if handler == nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "Invalid file"})
+		return
+	}
+
+	resp, err := h.collectionUsecase.UploadCollectionWithFile(userCtx.UserId, file, handler.Filename)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "here" + err.Error()})
+		return
+	}
+
+	c.Request.Header.Set("Content-Type", "application/json")
+	// c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: resp})
+
+}
