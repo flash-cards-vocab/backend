@@ -2,6 +2,7 @@ package collection_usecase
 
 import (
 	"errors"
+	"mime/multipart"
 
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
@@ -28,4 +29,6 @@ type UseCase interface {
 	SearchCollectionByName(text string, userId uuid.UUID) ([]*entity.UserCollectionResponse, error)
 	CreateCollection(collection entity.Collection, cards []*entity.Card, userId uuid.UUID) error
 	UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewing, learning uint32) error
+
+	UploadCollectionWithFile(userId uuid.UUID, file multipart.File, filename string) (*entity.CreateMultipleCollectionResponse, error)
 }

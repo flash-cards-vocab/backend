@@ -64,3 +64,8 @@ type GetCollectionWithCardsResponse struct {
 	TotalCards int            `json:"totalCards,omitempty"`
 	Cards      []*CardForUser `json:"cards,omitempty"`
 }
+
+type CreateMultipleCollectionResponse struct {
+	Name        string `json:"name,omitempty"`
+	CardsAmount uint32 `json:"cardsAmount,omitempty"`
+}

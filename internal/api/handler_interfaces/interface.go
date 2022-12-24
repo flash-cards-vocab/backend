@@ -19,6 +19,7 @@ type RestCollectionHandler interface {
 	UpdateCollectionUserProgress(c *gin.Context)
 	StarCollectionById(c *gin.Context)
 	GetCollectionUserProgress(c *gin.Context)
+	UploadCollectionWithFile(c *gin.Context)
 }
 
 type RestUserHandler interface {

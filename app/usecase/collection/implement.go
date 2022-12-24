@@ -3,12 +3,15 @@ package collection_usecase
 import (
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"strings"
 	"time"
 
 	repositoryIntf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
@@ -805,4 +808,74 @@ func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entit
 
 func (uc *usecase) UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewing, learning uint32) error {
 	panic("Not implemented")
+}
+
+func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.File, filename string) (*entity.CreateMultipleCollectionResponse, error) {
+	f, err := excelize.OpenReader(file)
+	if err != nil {
+		return nil, err
+	}
+	defer func() error {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+		return err
+	}()
+
+	collectionEnt := entity.Collection{}
+	cards := []*entity.Card{}
+
+	collectionName, err := f.GetCellValue(f.GetSheetName(0), "B3")
+	if err != nil {
+		return nil, err
+	}
+	collectionTopics, err := f.GetCellValue(f.GetSheetName(0), "B4")
+	if err != nil {
+		return nil, err
+	}
+	collectionEnt.Name = collectionName
+	collectionEnt.Topics = strings.Split(collectionTopics, ";")
+	collectionEnt.AuthorId = userId
+
+	collection, err := uc.collectionRepo.CreateCollection(collectionEnt)
+
+	rows, err := f.GetRows(f.GetSheetName(0))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	for rowI := 7; rowI < len(rows); rowI++ {
+		fmt.Println(rowI)
+		// Skip row that does not contain one of mandatory fields
+		if len(rows[rowI]) < 4 {
+			continue
+		}
+		card := &entity.Card{
+			Id:         uuid.New(),
+			Word:       rows[rowI][0],
+			Definition: rows[rowI][1],
+			Sentence:   rows[rowI][2],
+			ImageUrl:   rows[rowI][3],
+		}
+
+		if len(rows[rowI]) >= 5 {
+			card.Antonyms = rows[rowI][4]
+		}
+		if len(rows[rowI]) >= 6 {
+			card.Synonyms = rows[rowI][5]
+		}
+
+		cards = append(cards, card)
+	}
+	err = uc.cardRepo.CreateMultipleCards(collection.Id, cards, userId)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &entity.CreateMultipleCollectionResponse{
+		Name:        collection.Name,
+		CardsAmount: uint32(len(cards)),
+	}, nil
 }
