@@ -15,6 +15,7 @@ type Card struct {
 	Sentence   string     `gorm:"column:sentence"`
 	Antonyms   string     `gorm:"column:antonyms"`
 	Synonyms   string     `gorm:"column:synonyms"`
+	AuthorId   uuid.UUID  `gorm:"column:author_id"`
 	CreatedAt  time.Time  `gorm:"column:created_at"`
 	UpdatedAt  time.Time  `gorm:"column:updated_at"`
 	DeletedAt  *time.Time `gorm:"column:deleted_at"`
@@ -29,6 +30,7 @@ func (c *Card) ToEntity() *entity.Card {
 		Sentence:   c.Sentence,
 		Antonyms:   c.Antonyms,
 		Synonyms:   c.Synonyms,
+		AuthorId:   c.AuthorId,
 	}
 }
 
@@ -100,7 +102,8 @@ func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
 }
 
 type UserCardsStatistics struct {
-	Mastered  uint32 `gorm:"column:mastered"`
-	Reviewing uint32 `gorm:"column:reviewing"`
-	Learning  uint32 `gorm:"column:learning"`
+	CardsCreated uint32 `gorm:"column:cards_created"`
+	Mastered     uint32 `gorm:"column:mastered"`
+	Reviewing    uint32 `gorm:"column:reviewing"`
+	Learning     uint32 `gorm:"column:learning"`
 }

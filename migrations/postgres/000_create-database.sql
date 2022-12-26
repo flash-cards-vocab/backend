@@ -19,6 +19,7 @@ CREATE TABLE collection_cards (
 CREATE TABLE card (
     id uuid NOT NULL,
     word VARCHAR (150) NOT NULL,
+    author_id uuid NOT NULL,
     image_url TEXT NOT NULL,
     definition TEXT NOT NULL,
     sentence TEXT NOT NULL,
@@ -94,3 +95,29 @@ CREATE TABLE collection_metrics (
     views INT NOT NULL default 0,
     PRIMARY KEY (id)
 );
+CREATE TABLE collection_metrics (
+    id uuid NOT NULL,
+    collection_id uuid NOT NULL,
+    likes INT NOT NULL default 0,
+    dislikes INT NOT NULL default 0,
+    views INT NOT NULL default 0,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE company (
+    id uuid NOT NULL,
+    name VARCHAR (150) NOT NULL,
+    referral_token uuid NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE user_company_subscription (
+    id uuid NOT NULL,
+    company_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    status VARCHAR (150) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+premium_collection
+premium_card

@@ -33,7 +33,7 @@ func (h *handlerUser) GetProfile(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
 	}
-	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 }
 
 func (h *handlerUser) Register(c *gin.Context) {
@@ -51,7 +51,7 @@ func (h *handlerUser) Register(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
 	}
-	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 }
 
 func (h *handlerUser) Login(c *gin.Context) {
@@ -143,5 +143,5 @@ func (h *handlerUser) Login(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
 	}
-	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 }

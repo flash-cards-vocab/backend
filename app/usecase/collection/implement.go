@@ -865,6 +865,7 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 		if len(rows[rowI]) >= 6 {
 			card.Synonyms = rows[rowI][5]
 		}
+		card.AuthorId = userId
 
 		cards = append(cards, card)
 	}

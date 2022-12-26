@@ -29,7 +29,7 @@ func (h *handlerCollection) GetMyCollections(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetMyCollections(userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -52,7 +52,7 @@ func (h *handlerCollection) GetCollectionUserProgress(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetCollectionUserProgress(id, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -78,7 +78,7 @@ func (h *handlerCollection) GetRecommendedCollectionsPreview(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetRecommendedCollectionsPreview(userCtx.UserId, page, size)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -96,7 +96,7 @@ func (h *handlerCollection) GetLikedCollectionsPreview(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetLikedCollectionsPreview(userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -115,7 +115,7 @@ func (h *handlerCollection) GetStarredCollectionsPreview(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetStarredCollectionsPreview(userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -147,7 +147,7 @@ func (h *handlerCollection) GetCollectionWithCards(c *gin.Context) {
 
 	data, err := h.collectionUsecase.GetCollectionWithCards(id, userCtx.UserId, page, size)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -172,7 +172,7 @@ func (h *handlerCollection) GetCollectionMetricsById(c *gin.Context) {
 
 	err = h.collectionUsecase.StarCollectionById(id, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: metrics})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: metrics})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -196,7 +196,7 @@ func (h *handlerCollection) StarCollectionById(c *gin.Context) {
 
 	err = h.collectionUsecase.StarCollectionById(id, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: "SUCCESS"})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: "SUCCESS"})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -219,7 +219,7 @@ func (h *handlerCollection) LikeCollectionById(c *gin.Context) {
 
 	metrics, err := h.collectionUsecase.LikeCollectionById(id, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: metrics})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: metrics})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -241,7 +241,7 @@ func (h *handlerCollection) DislikeCollectionById(c *gin.Context) {
 
 	metrics, err := h.collectionUsecase.DislikeCollectionById(id, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: metrics})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: metrics})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -281,7 +281,7 @@ func (h *handlerCollection) SearchCollectionByName(c *gin.Context) {
 
 	data, err := h.collectionUsecase.SearchCollectionByName(text, userCtx.UserId)
 	if err == nil {
-		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: data})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
 		if errors.Is(err, collectionUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
@@ -347,6 +347,6 @@ func (h *handlerCollection) UploadCollectionWithFile(c *gin.Context) {
 
 	c.Request.Header.Set("Content-Type", "application/json")
 	// c.JSON(http.StatusOK, resp)
-	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Data: resp})
+	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: resp})
 
 }

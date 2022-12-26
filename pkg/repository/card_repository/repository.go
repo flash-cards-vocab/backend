@@ -29,6 +29,7 @@ func (r *repository) CreateSingleCard(card entity.Card) error {
 		Sentence:   card.Sentence,
 		Antonyms:   card.Antonyms,
 		Synonyms:   card.Synonyms,
+		AuthorId:   card.AuthorId,
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
@@ -50,9 +51,19 @@ func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardS
 	if err != nil {
 		return nil, err
 	}
-
+	err = r.db.
+		Raw(`
+		SELECT
+		COUNT(*) AS cards_created
+		FROM card
+		WHERE author_id=?`, userId).
+		Scan(&cardStatistics).
+		Error
+	if err != nil {
+		return nil, err
+	}
 	return &entity.UserCardStatistics{
-		CardsCreated:   0,
+		CardsCreated:   cardStatistics.CardsCreated,
 		CardsMastered:  cardStatistics.Mastered,
 		CardsReviewing: cardStatistics.Reviewing,
 		CardsLearning:  cardStatistics.Learning,
@@ -71,6 +82,7 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 			Definition: card.Definition,
 			Sentence:   card.Sentence,
 			Antonyms:   card.Antonyms,
+			AuthorId:   card.AuthorId,
 			Synonyms:   card.Synonyms,
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
@@ -161,22 +173,24 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				Create(&collectionUserProgress).
 				Error
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 		} else {
+			tx.Rollback()
 			return err
 		}
 	}
-	collectionCard := CardUserProgress{}
+	cardUserPrg := CardUserProgress{}
 	err = r.db.
 		Table("card_user_progress").
 		Where("card_id=? AND user_id=?", cardId, userId).
-		First(&collectionCard).
+		First(&cardUserPrg).
 		Error
 	if err != nil {
 		// if user had no interactions with this card, create one
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			collectionCard = CardUserProgress{
+			cardUserPrg = CardUserProgress{
 				Id:            uuid.New(),
 				CardId:        cardId,
 				UserId:        userId,
@@ -185,7 +199,7 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			}
 			err := r.db.
 				Table("card_user_progress").
-				Create(&collectionCard).
+				Create(&cardUserPrg).
 				Error
 			if err != nil {
 				tx.Rollback()
@@ -203,15 +217,16 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			}
 
 		} else {
+			tx.Rollback()
 			return err
 		}
 	} else {
-		if collectionCard.LearningCount == 2 {
+		if cardUserPrg.LearningCount == 2 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Mastered,
-					"learning_count": collectionCard.LearningCount + 1,
+					"learning_count": cardUserPrg.LearningCount + 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -228,12 +243,12 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				return err
 			}
 
-		} else if collectionCard.LearningCount == 1 {
+		} else if cardUserPrg.LearningCount == 1 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
-					"learning_count": collectionCard.LearningCount + 1,
+					"learning_count": cardUserPrg.LearningCount + 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -250,12 +265,12 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			// 	return err
 			// }
 
-		} else if collectionCard.LearningCount == 0 {
+		} else if cardUserPrg.LearningCount == 0 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
-					"learning_count": collectionCard.LearningCount + 1,
+					"learning_count": cardUserPrg.LearningCount + 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -304,23 +319,25 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				Create(&collectionUserProgress).
 				Error
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 		} else {
+			tx.Rollback()
 			return err
 		}
 	}
-	collectionCard := CardUserProgress{}
+	cardUserPrg := CardUserProgress{}
 	err = r.db.
 		Table("card_user_progress").
 		Where("card_id=? AND user_id=?", cardId, userId).
-		First(&collectionCard).
+		First(&cardUserPrg).
 		Error
 
 	if err != nil {
 		// if user had no interactions with this card, craete one
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			collectionCard = CardUserProgress{
+			cardUserPrg = CardUserProgress{
 				Id:            uuid.New(),
 				CardId:        cardId,
 				UserId:        userId,
@@ -329,7 +346,7 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 			}
 			err := r.db.
 				Table("card_user_progress").
-				Create(&collectionCard).
+				Create(&cardUserPrg).
 				Error
 			if err != nil {
 				tx.Rollback()
@@ -347,15 +364,16 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 			}
 
 		} else {
+			tx.Rollback()
 			return err
 		}
 	} else {
-		if collectionCard.LearningCount == 3 {
+		if cardUserPrg.LearningCount == 3 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
-					"learning_count": math.Max(float64(collectionCard.LearningCount), 1) - 1,
+					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -372,23 +390,23 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				return err
 			}
 
-		} else if collectionCard.LearningCount == 2 {
+		} else if cardUserPrg.LearningCount == 2 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
-					"learning_count": math.Max(float64(collectionCard.LearningCount), 1) - 1,
+					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
 				return err
 			}
 
-		} else if collectionCard.LearningCount == 1 {
+		} else if cardUserPrg.LearningCount == 1 {
 			err = r.db.Table("card_user_progress").
 				Where("card_id=? AND user_id=?", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Learning,
-					"learning_count": math.Max(float64(collectionCard.LearningCount), 1) - 1,
+					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -402,7 +420,6 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				}).Error
 			if err != nil {
 				tx.Rollback()
-				return err
 			}
 
 		}
