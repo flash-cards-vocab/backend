@@ -12,6 +12,7 @@ type Card struct {
 	Sentence   string    `json:"sentence,omitempty"`
 	Antonyms   string    `json:"antonyms,omitempty"`
 	Synonyms   string    `json:"synonyms,omitempty"`
+	AuthorId   uuid.UUID `json:"author_id,omitempty"`
 }
 
 type CardForUserPagination struct {
@@ -30,4 +31,5 @@ type CardForUser struct {
 	Antonyms   string    `json:"antonyms,omitempty"`
 	Synonyms   string    `json:"synonyms,omitempty"`
 	Status     string    `json:"status,omitempty"`
+	AuthorId   uuid.UUID `json:"author_id,omitempty"`
 }

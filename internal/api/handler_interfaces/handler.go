@@ -1,7 +1,7 @@
 package handler_interfaces
 
 type SuccessResponse struct {
-	Data interface{} `json:"data"`
+	Result interface{} `json:"result"`
 }
 type ErrorResponse struct {
 	Message string `json:"error"`

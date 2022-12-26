@@ -591,6 +591,7 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 			Antonyms:   card.Antonyms,
 			Synonyms:   card.Synonyms,
 			Status:     card.Status,
+			AuthorId:   card.AuthorId,
 		})
 	}
 

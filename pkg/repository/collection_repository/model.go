@@ -110,6 +110,7 @@ type Card struct {
 	Sentence   string     `gorm:"column:sentence"`
 	Antonyms   string     `gorm:"column:antonyms"`
 	Synonyms   string     `gorm:"column:synonyms"`
+	AuthorId   uuid.UUID  `gorm:"column:author_id"`
 	CreatedAt  time.Time  `gorm:"column:created_at"`
 	UpdatedAt  time.Time  `gorm:"column:updated_at"`
 	DeletedAt  *time.Time `gorm:"column:deleted_at"`
@@ -124,6 +125,7 @@ func (c *Card) ToEntity() *entity.Card {
 		Sentence:   c.Sentence,
 		Antonyms:   c.Antonyms,
 		Synonyms:   c.Synonyms,
+		AuthorId:   c.AuthorId,
 	}
 }
 
@@ -138,6 +140,7 @@ func (c Card) ToArrayEntity(cards []*Card) []*entity.Card {
 			Sentence:   card.Sentence,
 			Antonyms:   card.Antonyms,
 			Synonyms:   card.Synonyms,
+			AuthorId:   card.AuthorId,
 		})
 	}
 	return res
@@ -152,6 +155,7 @@ type CardForUser struct {
 	Antonyms   string    `gorm:"column:antonyms"`
 	Synonyms   string    `gorm:"column:synonyms"`
 	Status     string    `gorm:"column:status"`
+	AuthorId   uuid.UUID `gorm:"column:author_id"`
 }
 
 func (c *CardForUser) ToEntity() *entity.CardForUser {
@@ -164,6 +168,7 @@ func (c *CardForUser) ToEntity() *entity.CardForUser {
 		Antonyms:   c.Antonyms,
 		Synonyms:   c.Synonyms,
 		Status:     c.Status,
+		AuthorId:   c.AuthorId,
 	}
 }
 
@@ -179,6 +184,7 @@ func (c CardForUser) ToArrayEntity(cards []*CardForUser) []*entity.CardForUser {
 			Antonyms:   card.Antonyms,
 			Synonyms:   card.Synonyms,
 			Status:     card.Status,
+			AuthorId:   c.AuthorId,
 		})
 	}
 	return res

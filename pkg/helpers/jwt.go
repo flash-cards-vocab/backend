@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"time"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/flash-cards-vocab/backend/entity"
 	// "github.com/AleksK1NG/api-mc/config"
@@ -20,9 +18,9 @@ func GenerateJWTToken(user *entity.User) (string, error) {
 	claims := &Claims{
 		ID:    user.Id.String(),
 		Email: user.Email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-		},
+		// StandardClaims: jwt.StandardClaims{
+		// 	ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+		// },
 	}
 
 	// Declare the token with the algorithm used for signing, and the claims
