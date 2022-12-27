@@ -70,16 +70,16 @@ func (uc *usecase) Register(userReg entity.UserRegistration) (*entity.UserWithAu
 	existsUser, err := uc.userRepo.CheckIfUserExistsByEmail(userReg.Email)
 	if err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error1")
+		return nil, ErrUnexpected
 		// return nil, httpErrors.NewRestErrorWithMessage(http.StatusBadRequest, httpErrors.ErrEmailAlreadyExists, nil)
 	}
 	if existsUser {
-		return nil, fmt.Errorf("%w: %v", ErrUserExistsAlready, "User exists already")
+		return nil, ErrUserExistsAlready
 	}
 
 	if err = userReg.PrepareCreate(); err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Error while preparing userReg data to be created")
+		return nil, ErrUnexpected
 	}
 
 	user := entity.User{
@@ -99,12 +99,12 @@ func (uc *usecase) Register(userReg entity.UserRegistration) (*entity.UserWithAu
 			return nil, ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error3")
+		return nil, ErrUnexpected
 	}
 
 	err = uc.companyRepo.CreateUserCompanySubscription(createdUser.Id, userReg.Token)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Some problem with referral token")
+		return nil, ErrUnexpected
 	}
 
 	return &entity.UserWithAuthToken{
@@ -119,13 +119,16 @@ func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithAuthToken, erro
 	if err != nil {
 		return nil, err
 	}
+	if foundUser.Email == "" {
+		return nil, ErrNotFound
+	}
 
 	if err = foundUser.ComparePasswords(user.Password); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, fmt.Errorf("%w: %v", ErrUserPasswordMismatch, "Password mismatch")
+			return nil, ErrUserPasswordMismatch
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		return nil, ErrUnexpected
 	}
 
 	foundUser.Password = ""
@@ -133,7 +136,7 @@ func (uc *usecase) Login(user entity.UserLogin) (*entity.UserWithAuthToken, erro
 	token, err := helpers.GenerateJWTToken(foundUser)
 	if err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		return nil, ErrUnexpected
 	}
 
 	return &entity.UserWithAuthToken{

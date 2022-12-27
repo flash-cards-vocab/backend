@@ -47,6 +47,8 @@ func (h *handlerUser) Register(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, userUC.ErrNotFound) {
 			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else if errors.Is(err, userUC.ErrUserExistsAlready) {
+			c.JSON(400, handlerIntf.ErrorResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
 		}
