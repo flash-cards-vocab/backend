@@ -15,7 +15,7 @@ const (
 
 type CardUserProgress struct {
 	Id     uuid.UUID            `json:"id,omitempty"`
-	CardId uuid.UUID            `json:"card_id,omitempty"`
-	UserId uuid.UUID            `json:"user_id,omitempty"`
+	CardId uuid.UUID            `json:"cardId,omitempty"`
+	UserId uuid.UUID            `json:"userId,omitempty"`
 	Status CardUserProgressType `json:"learning,omitempty"`
 }

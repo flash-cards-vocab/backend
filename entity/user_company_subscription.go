@@ -13,7 +13,7 @@ const (
 
 type UserCompanySubscription struct {
 	Id        uuid.UUID                     `json:"id,omitempty"`
-	CompanyId uuid.UUID                     `json:"company_id,omitempty"`
-	UserId    uuid.UUID                     `json:"user_id,omitempty"`
+	CompanyId uuid.UUID                     `json:"companyId,omitempty"`
+	UserId    uuid.UUID                     `json:"userId,omitempty"`
 	Status    UserCompanySubscriptionStatus `json:"status,omitempty"`
 }

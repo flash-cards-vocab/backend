@@ -12,8 +12,8 @@ type CollectionUserProgressResponse struct {
 
 type CollectionUserProgress struct {
 	Id           uuid.UUID `json:"id,omitempty"`
-	CollectionId uuid.UUID `json:"collection_id,omitempty"`
-	UserId       uuid.UUID `json:"user_id,omitempty"`
+	CollectionId uuid.UUID `json:"collectionId,omitempty"`
+	UserId       uuid.UUID `json:"userId,omitempty"`
 	Mastered     uint32    `json:"mastered,omitempty"`
 	Reviewing    uint32    `json:"reviewing,omitempty"`
 	Learning     uint32    `json:"learning,omitempty"`

@@ -14,6 +14,6 @@ const (
 type Company struct {
 	Id            uuid.UUID            `json:"id,omitempty"`
 	Name          string               `json:"name,omitempty"`
-	ReferralToken uuid.UUID            `json:"referral_token,omitempty"`
-	PremiumStatus CompanyPremiumStatus `json:"premium_status,omitempty"`
+	ReferralToken uuid.UUID            `json:"referralToken,omitempty"`
+	PremiumStatus CompanyPremiumStatus `json:"premiumStatus,omitempty"`
 }
