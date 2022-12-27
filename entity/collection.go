@@ -43,10 +43,10 @@ type Collection struct {
 	Id        uuid.UUID  `json:"id,omitempty"`
 	Name      string     `json:"name,omitempty"`
 	Topics    []string   `json:"topics,omitempty"`
-	AuthorId  uuid.UUID  `json:"author_id,omitempty"`
-	CreatedAt time.Time  `json:"created_at,omitempty"`
-	UpdatedAt time.Time  `json:"updated_at,omitempty"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	AuthorId  uuid.UUID  `json:"authorId,omitempty"`
+	CreatedAt time.Time  `json:"createdAt,omitempty"`
+	UpdatedAt time.Time  `json:"updatedAt,omitempty"`
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }
 
 type CreateCollectionRequest struct {
