@@ -24,7 +24,9 @@ type usecase struct {
 	envPrefix      string
 }
 
-func New(cardRepo repositoryIntf.CardRepository, collectionRepo repositoryIntf.CollectionRepository,
+func New(
+	cardRepo repositoryIntf.CardRepository,
+	collectionRepo repositoryIntf.CollectionRepository,
 	gcsClient *storage.Client,
 	bucketName string,
 	envPrefix string,
@@ -47,7 +49,8 @@ func (u *usecase) UploadCardImage(
 	defer cancel()
 
 	filenameToUpload := location + "/" + strings.ReplaceAll(filename, " ", "+")
-	fullFilename := "https://storage.googleapis.com/" + u.bucketName + "/" + u.envPrefix + "/" + filenameToUpload + "--" + uuid.NewString()
+	// filenameToUpload := "card_images/" + strings.ReplaceAll(card.Word, " ", "+") + "--" + uuid.NewString()
+	fileURL := "https://storage.googleapis.com/" + u.bucketName + "/" + u.envPrefix + "/" + filenameToUpload + "--" + uuid.NewString()
 	wc := u.gcsClient.Bucket(u.bucketName).Object(u.envPrefix + "/" + filenameToUpload).NewWriter(ctx)
 	// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
 
@@ -59,7 +62,7 @@ func (u *usecase) UploadCardImage(
 		return "", fmt.Errorf("%w: %v", "ErrUnexpected2", err)
 	}
 
-	return fullFilename, nil
+	return fileURL, nil
 }
 
 func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) ([]*entity.Card, error) {
@@ -82,8 +85,6 @@ func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) (
 	// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	// }
 
-	// limit := size
-	// offset := (page - 1) * size
 	// cards, err := uc.cardRepo.GetCollectionCards(id, limit, offset)
 	// if err != nil {
 	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {

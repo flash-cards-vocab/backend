@@ -1,12 +1,16 @@
 package collection_usecase
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
+	"net/http"
 	"strings"
 	"time"
 
+	"cloud.google.com/go/storage"
 	repositoryIntf "github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
 	"github.com/google/uuid"
@@ -19,16 +23,26 @@ type usecase struct {
 	collectionRepo repositoryIntf.CollectionRepository
 	cardRepo       repositoryIntf.CardRepository
 	userRepo       repositoryIntf.UserRepository
+	gcsClient      *storage.Client
+	bucketName     string
+	envPrefix      string
 }
 
 func New(
 	collectionRepo repositoryIntf.CollectionRepository,
 	cardRepo repositoryIntf.CardRepository,
-	userRepo repositoryIntf.UserRepository) UseCase {
+	userRepo repositoryIntf.UserRepository,
+	gcsClient *storage.Client,
+	bucketName string,
+	envPrefix string,
+) UseCase {
 	return &usecase{
 		collectionRepo: collectionRepo,
 		cardRepo:       cardRepo,
 		userRepo:       userRepo,
+		gcsClient:      gcsClient,
+		bucketName:     bucketName,
+		envPrefix:      envPrefix,
 	}
 }
 
@@ -795,6 +809,40 @@ func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entit
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
+	urlGCP := "https://storage.googleapis.com/flashcards-images"
+
+	for _, card := range cards {
+		if !strings.Contains(card.ImageUrl, urlGCP) {
+			response, err := http.Get(card.ImageUrl)
+			if err != nil {
+				return err
+			}
+			defer response.Body.Close()
+
+			if response.StatusCode != 200 {
+				return fmt.Errorf("%w: %v", ErrUnexpected, "Received non 200 response code")
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*50)
+			defer cancel()
+
+			filenameToUpload := "card_images/" + strings.ReplaceAll(card.Word, " ", "+") + "--" + uuid.NewString()
+			fileURL := "https://storage.googleapis.com/" + uc.bucketName + "/" + uc.envPrefix + "/" + filenameToUpload
+			wc := uc.gcsClient.Bucket(uc.bucketName).Object(uc.envPrefix + "/" + filenameToUpload).NewWriter(ctx)
+			// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
+
+			if _, err := io.Copy(wc, response.Body); err != nil {
+				return fmt.Errorf("%w: %v", "ErrUnexpected1", err)
+			}
+
+			if err := wc.Close(); err != nil {
+				return fmt.Errorf("%w: %v", "ErrUnexpected2", err)
+			}
+			card.ImageUrl = fileURL
+
+		}
+	}
+
 	err = uc.cardRepo.CreateMultipleCards(createdCollection.Id, cards, userId)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
