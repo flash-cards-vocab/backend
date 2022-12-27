@@ -62,15 +62,17 @@ func (u *usecase) UploadCardImage(
 	return fullFilename, nil
 }
 
-func (uc *usecase) SearchByWord(word string, userId uuid.UUID) ([]*entity.Card, error) {
-	// collection, err := uc.cardRepo.GetCollection(id)
-	// if err != nil {
-	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-	// 		return nil, ErrNotFound
-	// 	}
-	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	// }
+func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) ([]*entity.Card, error) {
+	limit := size
+	offset := (page - 1) * size
+	cards, err := uc.cardRepo.GetCardsByWord(word, limit, offset)
+	if err != nil {
+		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+			return nil, ErrNotFound
+		}
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
 	// collectionProgress, err := uc.cardRepo.GetCollectionUserProgress(id, userId)
 	// if err != nil {
 	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
@@ -99,9 +101,7 @@ func (uc *usecase) SearchByWord(word string, userId uuid.UUID) ([]*entity.Card, 
 	// 	TotalCards: cards.Total,
 	// 	Cards:      cards.Cards,
 	// }
-	// return collectionResponses, nil
-	panic("Not implemented")
-
+	return cards, nil
 }
 
 func (uc *usecase) AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error {

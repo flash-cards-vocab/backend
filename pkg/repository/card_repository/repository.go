@@ -36,6 +36,27 @@ func (r *repository) CreateSingleCard(card entity.Card) error {
 	return r.db.Table(r.tableName).Create(data).Error
 }
 
+func (r *repository) GetCardsByWord(word string, limit, offset int) ([]*entity.Card, error) {
+	var cards []*Card
+	err := r.db.
+		Raw(`
+			SELECT c.* FROM card c
+			INNER JOIN card_metrics cm on c.id = cm.card_id
+			WHERE lower(c.word) like lower(?)
+			AND c.deleted_at IS null
+			ORDER BY cm.likes 
+			LIMIT ?
+			OFFSET ?
+		`, "%"+word+"%", limit, offset).
+		Scan(&cards).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return Card{}.ToArrayEntity(cards), nil
+}
+
 func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardStatistics, error) {
 	var cardStatistics *UserCardsStatistics
 	err := r.db.
@@ -68,7 +89,6 @@ func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardS
 		CardsReviewing: cardStatistics.Reviewing,
 		CardsLearning:  cardStatistics.Learning,
 	}, nil
-
 }
 
 func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity.Card, userId uuid.UUID) error {
@@ -82,7 +102,7 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 			Definition: card.Definition,
 			Sentence:   card.Sentence,
 			Antonyms:   card.Antonyms,
-			AuthorId:   card.AuthorId,
+			AuthorId:   userId,
 			Synonyms:   card.Synonyms,
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),

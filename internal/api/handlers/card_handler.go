@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	cardUC "github.com/flash-cards-vocab/backend/app/usecase/card"
 	collectionUC "github.com/flash-cards-vocab/backend/app/usecase/collection"
@@ -25,11 +26,11 @@ func NewCardHandler(cardUsecase cardUC.UseCase, apikey string) handlerIntf.RestC
 func (h *handlerCard) UploadCardImage(c *gin.Context) {
 	// start_time := time.Now()
 
-	reqApikey := c.Request.Header.Get("Apikey")
-	if reqApikey != h.apikey {
-		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "API key is incorrect"})
-		return
-	}
+	// reqApikey := c.Request.Header.Get("Apikey")
+	// if reqApikey != h.apikey {
+	// 	c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "API key is incorrect"})
+	// 	return
+	// }
 
 	file, handler, err := c.Request.FormFile("file")
 	if err != nil {
@@ -63,9 +64,18 @@ func (h *handlerCard) SearchByWord(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
 	}
-	text := c.Param("query")
+	word := c.Param("word")
 
-	data, err := h.cardUsecase.SearchByWord(text, userCtx.UserId)
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil || size < 1 {
+		size = 10
+	}
+
+	data, err := h.cardUsecase.SearchByWord(word, userCtx.UserId, page, size)
 	if err == nil {
 		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {
