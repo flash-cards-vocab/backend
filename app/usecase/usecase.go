@@ -36,8 +36,8 @@ func Get(app *application.Application) *Usecase {
 	}
 
 	userUsecase := userUC.New(repo.UserRepository, repo.CompanyRepository, repo.CollectionRepository, repo.CardRepository)
-	collectionUsecase := collectionUC.New(repo.CollectionRepository, repo.CardRepository, repo.UserRepository)
-	cardUsecase := cardUC.New(repo.CardRepository, repo.CollectionRepository, gcsClient, os.Getenv("GCS_BUCKET_NAME"), os.Getenv("GCS_PREFIX"))
+	collectionUsecase := collectionUC.New(repo.CollectionRepository, repo.CardRepository, repo.UserRepository, gcsClient, "flashcards-images", "dev")
+	cardUsecase := cardUC.New(repo.CardRepository, repo.CollectionRepository, gcsClient, "flashcards-images", "dev")
 
 	return &Usecase{
 		App:               app,
