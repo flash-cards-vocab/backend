@@ -34,6 +34,23 @@ func (c *Card) ToEntity() *entity.Card {
 	}
 }
 
+func (c Card) ToArrayEntity(cards []*Card) []*entity.Card {
+	res := []*entity.Card{}
+	for _, card := range cards {
+		res = append(res, &entity.Card{
+			Id:         card.Id,
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			AuthorId:   card.AuthorId,
+		})
+	}
+	return res
+}
+
 type CardUserProgress struct {
 	Id            uuid.UUID                   `gorm:"primary_key;column:id"`
 	CardId        uuid.UUID                   `gorm:"column:card_id"`

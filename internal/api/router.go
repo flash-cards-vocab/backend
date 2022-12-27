@@ -8,6 +8,7 @@ import (
 )
 
 func NewRouter(app *application.Application) (*gin.Engine, error) {
+	// gin.SetMode((gin.ReleaseMode))
 	router := gin.Default()
 	h := handlers.Get(app)
 
@@ -40,6 +41,7 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	// Card routes
 	card := v1.Group("/card")
 	card.POST("/upload-card-image", middleware.AuthorizeJWT, h.CardHandler.UploadCardImage)
+	card.GET("/search-by-word/:word", middleware.AuthorizeJWT, h.CardHandler.SearchByWord)
 	card.POST("/add-card-to-collection/:collection_id/:card_id", middleware.AuthorizeJWT, h.CardHandler.AddExistingCardToCollection)
 	card.PUT("/know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.KnowCard)
 	card.PUT("/dont-know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.DontKnowCard)
