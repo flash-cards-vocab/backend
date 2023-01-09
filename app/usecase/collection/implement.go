@@ -494,6 +494,7 @@ func (uc *usecase) GetCollectionWithCards(collectionId, userId uuid.UUID, page, 
 		Reviewing:  collectionProgress.Reviewing,
 		Learning:   collectionProgress.Learning,
 		TotalCards: cards.Total,
+		Topics:     collection.Topics,
 		Cards:      cards.CardForUser,
 	}
 	return collectionResponses, nil
