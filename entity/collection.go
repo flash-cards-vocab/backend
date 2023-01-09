@@ -62,6 +62,7 @@ type GetCollectionWithCardsResponse struct {
 	Reviewing  uint32         `json:"reviewing"`
 	Learning   uint32         `json:"learning"`
 	TotalCards int            `json:"totalCards,omitempty"`
+	Topics     []string       `json:"topics,omitempty"`
 	Cards      []*CardForUser `json:"cards,omitempty"`
 }
 
