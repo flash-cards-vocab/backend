@@ -17,32 +17,41 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 
 	// User routes
 	user := v1.Group("/user")
+	// User GET requests
+	user.GET("/profile", middleware.AuthorizeJWT, h.UserHandler.GetProfile)
+	// User POST requests
 	user.POST("/login", h.UserHandler.Login)
 	user.POST("/register", h.UserHandler.Register)
-	user.GET("/profile", middleware.AuthorizeJWT, h.UserHandler.GetProfile)
 
 	// Collection routes
 	collection := v1.Group("/collection")
+	// Collection GET requests
 	collection.GET("/my", middleware.AuthorizeJWT, h.CollectionHandler.GetMyCollections)
 	collection.GET("/recommended", middleware.AuthorizeJWT, h.CollectionHandler.GetRecommendedCollectionsPreview)
 	collection.GET("/liked", middleware.AuthorizeJWT, h.CollectionHandler.GetLikedCollectionsPreview)
 	collection.GET("/starred", middleware.AuthorizeJWT, h.CollectionHandler.GetStarredCollectionsPreview)
 	collection.GET("/metrics/:id", middleware.AuthorizeJWT, h.CollectionHandler.GetCollectionMetricsById)
 	collection.GET("/full/:id", middleware.AuthorizeJWT, h.CollectionHandler.GetCollectionWithCards)
+	collection.GET("/search/:query", middleware.AuthorizeJWT, h.CollectionHandler.SearchCollectionByName)
+	// Collection POST requests
+	collection.POST("/create", middleware.AuthorizeJWT, h.CollectionHandler.CreateCollection)
+	collection.POST("/upload-collection-with-file", middleware.AuthorizeJWT, h.CollectionHandler.UploadCollectionWithFile)
+	// Collection PUT requests
+	collection.PUT("/update-user-progress/:id", middleware.AuthorizeJWT, h.CollectionHandler.UpdateCollectionUserProgress)
 	collection.PUT("/star/:id", middleware.AuthorizeJWT, h.CollectionHandler.StarCollectionById)
 	collection.PUT("/like/:id", middleware.AuthorizeJWT, h.CollectionHandler.LikeCollectionById)
 	collection.PUT("/dislike/:id", middleware.AuthorizeJWT, h.CollectionHandler.DislikeCollectionById)
 	collection.PUT("/view/:id", middleware.AuthorizeJWT, h.CollectionHandler.ViewCollectionById)
-	collection.GET("/search/:query", middleware.AuthorizeJWT, h.CollectionHandler.SearchCollectionByName)
-	collection.POST("/create", middleware.AuthorizeJWT, h.CollectionHandler.CreateCollection)
-	collection.PUT("/update-user-progress/:id", middleware.AuthorizeJWT, h.CollectionHandler.UpdateCollectionUserProgress)
-	collection.POST("/upload-collection-with-file", middleware.AuthorizeJWT, h.CollectionHandler.UploadCollectionWithFile)
+	collection.PUT("/update", middleware.AuthorizeJWT, h.CollectionHandler.UpdateCollection)
 
 	// Card routes
 	card := v1.Group("/card")
-	card.POST("/upload-card-image", middleware.AuthorizeJWT, h.CardHandler.UploadCardImage)
+	// Card GET requests
 	card.GET("/search-by-word/:word", middleware.AuthorizeJWT, h.CardHandler.SearchByWord)
+	// Card POST requests
+	card.POST("/upload-card-image", middleware.AuthorizeJWT, h.CardHandler.UploadCardImage)
 	card.POST("/add-card-to-collection/:collection_id/:card_id", middleware.AuthorizeJWT, h.CardHandler.AddExistingCardToCollection)
+	// Card PUT requests
 	card.PUT("/know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.KnowCard)
 	card.PUT("/dont-know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.DontKnowCard)
 

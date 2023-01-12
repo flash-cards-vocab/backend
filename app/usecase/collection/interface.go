@@ -31,4 +31,5 @@ type UseCase interface {
 	UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewing, learning uint32) error
 
 	UploadCollectionWithFile(userId uuid.UUID, file multipart.File, filename string) (*entity.CreateMultipleCollectionResponse, error)
+	UpdateCollection(userId uuid.UUID, updateData *entity.UpdateCollectionRequest) error
 }

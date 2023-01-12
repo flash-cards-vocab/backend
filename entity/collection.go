@@ -70,3 +70,10 @@ type CreateMultipleCollectionResponse struct {
 	Name        string `json:"name,omitempty"`
 	CardsAmount uint32 `json:"cardsAmount,omitempty"`
 }
+
+type UpdateCollectionRequest struct {
+	Id     uuid.UUID     `json:"id"`
+	Name   string        `json:"name"`
+	Topics []string      `json:"topics"`
+	Cards  []*CardUpdate `json:"cards"`
+}

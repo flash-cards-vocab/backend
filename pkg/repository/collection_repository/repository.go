@@ -604,3 +604,16 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 	return data, nil
 
 }
+
+func (r *repository) UpdateCollection(collection entity.Collection) error {
+	collectionToUpd := Collection{
+		Name:      collection.Name,
+		Topics:    collection.Topics,
+		UpdatedAt: time.Now(),
+	}
+	return r.db.
+		Table("collection").
+		Where("id = ? AND deleted_at is NULL", collection.Id).
+		Updates(collectionToUpd).
+		Error
+}

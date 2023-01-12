@@ -161,6 +161,20 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 	return nil
 }
 
+func (r *repository) RemoveMultipleCardsFromCollection(cardsToRemove []*entity.CollectionCards) error {
+	for _, card := range cardsToRemove {
+		err := r.db.
+			Table("collection_cards").
+			Where("collection_id=? AND card_id=?", card.CollectionId, card.CardId).
+			Delete(CollectionCards{}).
+			Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (r *repository) AssignCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error {
 	collectionCard := &CollectionCards{
 		CollectionId: collectionId,

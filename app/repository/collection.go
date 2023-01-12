@@ -29,6 +29,7 @@ type CollectionRepository interface {
 	ViewCollection(id, userId uuid.UUID) error
 	SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error)
 	CreateCollection(collection entity.Collection) (*entity.Collection, error)
+	UpdateCollection(collection entity.Collection) error
 
 	GetCollectionMetrics(id uuid.UUID) (*entity.CollectionMetrics, error)
 	GetCollectionUserProgress(id, userId uuid.UUID) (*entity.CollectionUserProgress, error)
