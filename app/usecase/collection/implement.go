@@ -129,16 +129,6 @@ func (uc *usecase) GetMyCollections(userId uuid.UUID) ([]*entity.UserCollectionR
 }
 
 func (uc *usecase) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.CollectionUserProgressResponse, error) {
-	// collectionMetrics, err := uc.collectionRepo.GetCollectionMetrics(id)
-	// if err != nil {
-	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-	// 		return nil, ErrNotFound
-	// 	}
-	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	// }
-
-	// return collectionResponse, nil
 	panic("Not implemented")
 }
 
@@ -529,16 +519,6 @@ func (uc *usecase) LikeCollectionById(id, userId uuid.UUID) (*entity.CollectionF
 
 	isLiked, isDisliked, err := uc.collectionRepo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
-		// if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-		// 	return nil, ErrNotFound
-		// }
-		// if errors.Is(err, repositoryIntf.ErrCollectionUserMetricsNotFound) {
-		// 	err = uc.collectionRepo.CreateCollectionUserMetrics(id, userId)
-		// 	if err != nil {
-		// 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		// 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-		// 	}
-		// }
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
@@ -616,9 +596,6 @@ func (uc *usecase) DislikeCollectionById(id, userId uuid.UUID) (*entity.Collecti
 
 	isLiked, isDisliked, err := uc.collectionRepo.IsCollectionLikedOrDislikedByUser(id, userId)
 	if err != nil {
-		// if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-		// 	return nil, ErrNotFound
-		// }
 		if errors.Is(err, repositoryIntf.ErrCollectionUserMetricsNotFound) {
 			err = uc.collectionRepo.CreateCollectionUserMetrics(id, userId)
 			if err != nil {
@@ -928,4 +905,74 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 		Name:        collection.Name,
 		CardsAmount: uint32(len(cards)),
 	}, nil
+}
+
+func (uc *usecase) UpdateCollection(
+	userId uuid.UUID,
+	updateData *entity.UpdateCollectionRequest) error {
+
+	collectionData := entity.Collection{
+		Id:     updateData.Id,
+		Name:   updateData.Name,
+		Topics: updateData.Topics,
+	}
+	err := uc.collectionRepo.UpdateCollection(collectionData)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	cardsToCreate := []*entity.Card{}
+	cardsToRemove := []*entity.CollectionCards{}
+
+	for _, card := range updateData.Cards {
+		switch card.Action {
+		case entity.CardUpdateType_Create: // just create a new card
+			card := &entity.Card{
+				Word:       card.Word,
+				ImageUrl:   card.ImageUrl,
+				Definition: card.Definition,
+				Sentence:   card.Sentence,
+				Antonyms:   card.Antonyms,
+				Synonyms:   card.Synonyms,
+			}
+			cardsToCreate = append(cardsToCreate, card)
+
+		case entity.CardUpdateType_Update: // create a new card and remove the previous from the collection
+			cardToCreate := &entity.Card{
+				Word:       card.Word,
+				ImageUrl:   card.ImageUrl,
+				Definition: card.Definition,
+				Sentence:   card.Sentence,
+				Antonyms:   card.Antonyms,
+				Synonyms:   card.Synonyms,
+			}
+			cardsToCreate = append(cardsToCreate, cardToCreate)
+
+			cardToRemove := &entity.CollectionCards{
+				CardId:       card.Id,
+				CollectionId: collectionData.Id,
+			}
+			cardsToRemove = append(cardsToRemove, cardToRemove)
+
+		case entity.CardUpdateType_Remove: // remove the card from the collection, do not delete it
+			card := &entity.CollectionCards{
+				CardId:       card.Id,
+				CollectionId: collectionData.Id,
+			}
+			cardsToRemove = append(cardsToRemove, card)
+
+		}
+	}
+
+	err = uc.cardRepo.CreateMultipleCards(collectionData.Id, cardsToCreate, userId)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	err = uc.cardRepo.RemoveMultipleCardsFromCollection(cardsToRemove)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
