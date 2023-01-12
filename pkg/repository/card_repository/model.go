@@ -85,9 +85,9 @@ func (c *CardMetrics) ToEntity() *entity.CardMetrics {
 }
 
 type CollectionCards struct {
-	Id           uuid.UUID `json:"id,omitempty"`
-	CardId       uuid.UUID `json:"card_id,omitempty"`
-	CollectionId uuid.UUID `json:"collection_id,omitempty"`
+	Id           uuid.UUID `gorm:"primary_key;column:id"`
+	CardId       uuid.UUID `gorm:"column:card_id"`
+	CollectionId uuid.UUID `gorm:"column:collection_id"`
 }
 
 func (c *CollectionCards) ToEntity() *entity.CollectionCards {
@@ -96,6 +96,16 @@ func (c *CollectionCards) ToEntity() *entity.CollectionCards {
 		CardId:       c.CardId,
 		CollectionId: c.CollectionId,
 	}
+}
+func (c CollectionCards) FromArrayEntity(cards []*entity.CollectionCards) []*CollectionCards {
+	res := []*CollectionCards{}
+	for _, card := range cards {
+		res = append(res, &CollectionCards{
+			CardId:       card.CardId,
+			CollectionId: card.CollectionId,
+		})
+	}
+	return res
 }
 
 type CollectionUserProgress struct {

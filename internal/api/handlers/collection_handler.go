@@ -318,6 +318,7 @@ func (h *handlerCollection) CreateCollection(c *gin.Context) {
 		}
 	}
 }
+
 func (h *handlerCollection) UpdateCollectionUserProgress(c *gin.Context) {
 	panic("not implemented")
 }
@@ -349,4 +350,27 @@ func (h *handlerCollection) UploadCollectionWithFile(c *gin.Context) {
 	// c.JSON(http.StatusOK, resp)
 	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: resp})
 
+}
+
+func (h *handlerCollection) UpdateCollection(c *gin.Context) {
+	var updateCollectionData *entity.UpdateCollectionRequest
+	err := c.ShouldBindJSON(&updateCollectionData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+	}
+	userCtx, err := helpers.GetAuthContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
+	}
+
+	err = h.collectionUsecase.UpdateCollection(userCtx.UserId, updateCollectionData)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{"Collection Created"})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
 }
