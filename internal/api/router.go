@@ -47,7 +47,7 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	// Card routes
 	card := v1.Group("/card")
 	// Card GET requests
-	card.GET("/search-by-word/:word", middleware.AuthorizeJWT, h.CardHandler.SearchByWord)
+	card.GET("/search-by-word", middleware.AuthorizeJWT, h.CardHandler.SearchByWord)
 	// Card POST requests
 	card.POST("/upload-card-image", middleware.AuthorizeJWT, h.CardHandler.UploadCardImage)
 	card.POST("/add-card-to-collection/:collection_id/:card_id", middleware.AuthorizeJWT, h.CardHandler.AddExistingCardToCollection)

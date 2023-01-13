@@ -65,10 +65,11 @@ func (u *usecase) UploadCardImage(
 	return fileURL, nil
 }
 
-func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) ([]*entity.Card, error) {
+func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) (*entity.CardSearch, error) {
 	limit := size
 	offset := (page - 1) * size
-	cards, err := uc.cardRepo.GetCardsByWord(word, limit, offset)
+
+	userCards, err := uc.cardRepo.GetUserCardsByWord(word, userId, limit, offset)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
 			return nil, ErrNotFound
@@ -76,33 +77,22 @@ func (uc *usecase) SearchByWord(word string, userId uuid.UUID, page, size int) (
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-	// collectionProgress, err := uc.cardRepo.GetCollectionUserProgress(id, userId)
-	// if err != nil {
-	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-	// 		return nil, ErrNotFound
-	// 	}
-	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	// }
+	var globalCards []*entity.CardWithOccurence
+	if word != "" {
+		globalCards, err = uc.cardRepo.GetGlobalCardsByWord(word, userId, limit, offset)
+		if err != nil {
+			if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+				return nil, ErrNotFound
+			}
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		}
+	}
 
-	// cards, err := uc.cardRepo.GetCollectionCards(id, limit, offset)
-	// if err != nil {
-	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-	// 		return nil, ErrNotFound
-	// 	}
-	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	// }
-	// collectionResponses := &entity.GetCollectionWithCardsResponse{
-	// 	Id:         collection.Id,
-	// 	Name:       collection.Name,
-	// 	Mastered:   collectionProgress.Mastered,
-	// 	Reviewing:  collectionProgress.Reviewing,
-	// 	Learning:   collectionProgress.Learning,
-	// 	TotalCards: cards.Total,
-	// 	Cards:      cards.Cards,
-	// }
-	return cards, nil
+	return &entity.CardSearch{
+		UserCards:   userCards,
+		GlobalCards: globalCards,
+	}, nil
 }
 
 func (uc *usecase) AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error {
