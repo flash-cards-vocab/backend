@@ -14,6 +14,17 @@ type Card struct {
 	Synonyms   string    `json:"synonyms,omitempty"`
 	AuthorId   uuid.UUID `json:"authorId,omitempty"`
 }
+type CardWithOccurence struct {
+	Id         uuid.UUID `json:"id,omitempty"`
+	Word       string    `json:"word,omitempty"`
+	ImageUrl   string    `json:"imageUrl,omitempty"`
+	Definition string    `json:"definition,omitempty"`
+	Sentence   string    `json:"sentence,omitempty"`
+	Antonyms   string    `json:"antonyms,omitempty"`
+	Synonyms   string    `json:"synonyms,omitempty"`
+	AuthorId   uuid.UUID `json:"authorId,omitempty"`
+	Occurence  int       `json:"occurence,omitempty"`
+}
 
 type CardForUserPagination struct {
 	CardForUser []*CardForUser `json:"cards,omitempty"`
@@ -51,4 +62,9 @@ type CardUpdate struct {
 	Antonyms   string         `json:"antonyms,omitempty"`
 	Synonyms   string         `json:"synonyms,omitempty"`
 	Action     CardUpdateType `json:"action,omitempty"`
+}
+
+type CardSearch struct {
+	UserCards   []*CardWithOccurence `json:"userCards,omitempty"`
+	GlobalCards []*CardWithOccurence `json:"globalCards,omitempty"`
 }

@@ -64,8 +64,8 @@ func (h *handlerCard) SearchByWord(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: "User id not found"})
 	}
-	word := c.Param("word")
 
+	search := c.Query("search")
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil || page < 1 {
 		page = 1
@@ -75,7 +75,7 @@ func (h *handlerCard) SearchByWord(c *gin.Context) {
 		size = 10
 	}
 
-	data, err := h.cardUsecase.SearchByWord(word, userCtx.UserId, page, size)
+	data, err := h.cardUsecase.SearchByWord(search, userCtx.UserId, page, size)
 	if err == nil {
 		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 	} else {

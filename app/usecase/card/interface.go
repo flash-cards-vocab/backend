@@ -21,7 +21,7 @@ type UseCase interface {
 		filename string,
 	) (string, error)
 	AddExistingCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error
-	SearchByWord(word string, userId uuid.UUID, page, size int) ([]*entity.Card, error)
+	SearchByWord(word string, userId uuid.UUID, page, size int) (*entity.CardSearch, error)
 	KnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error)
 	DontKnowCard(collectionId, cardId, userId uuid.UUID) (*entity.CollectionUserProgress, error)
 }

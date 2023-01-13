@@ -17,5 +17,6 @@ type CardRepository interface {
 	KnowCard(collectionId, cardId, userId uuid.UUID) error
 	DontKnowCard(collectionId, cardId, userId uuid.UUID) error
 	GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardStatistics, error)
-	GetCardsByWord(word string, limit, offset int) ([]*entity.Card, error)
+	GetUserCardsByWord(word string, userId uuid.UUID, limit, offset int) ([]*entity.CardWithOccurence, error)
+	GetGlobalCardsByWord(word string, userId uuid.UUID, limit, offset int) ([]*entity.CardWithOccurence, error)
 }

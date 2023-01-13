@@ -57,6 +57,52 @@ func (r *repository) GetCardsByWord(word string, limit, offset int) ([]*entity.C
 	return Card{}.ToArrayEntity(cards), nil
 }
 
+func (r *repository) GetUserCardsByWord(word string, userId uuid.UUID, limit, offset int) ([]*entity.CardWithOccurence, error) {
+	var cards []*CardWithOccurence
+	err := r.db.
+		Raw(`
+			SELECT count(cc.*) as occurence, c.* FROM card c
+			LEFT JOIN collection_cards cc on c.id = cc.card_id
+			WHERE lower(c.word) like lower(?)
+			AND c.author_id = ?
+			AND c.deleted_at IS null
+			GROUP BY c.id
+			ORDER BY occurence desc
+			LIMIT ?
+			OFFSET ?
+		`, "%"+word+"%", userId, limit, offset).
+		Scan(&cards).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return CardWithOccurence{}.ToArrayEntity(cards), nil
+}
+
+func (r *repository) GetGlobalCardsByWord(word string, userId uuid.UUID, limit, offset int) ([]*entity.CardWithOccurence, error) {
+	var cards []*CardWithOccurence
+	err := r.db.
+		Raw(`
+			SELECT count(cc.*) as occurence, c.* FROM card c
+			LEFT JOIN collection_cards cc on c.id = cc.card_id
+			WHERE lower(c.word) like lower(?)
+			AND c.author_id <> ?
+			AND c.deleted_at IS null
+			GROUP BY c.id
+			ORDER BY occurence desc
+			LIMIT ?
+			OFFSET ?
+		`, "%"+word+"%", userId, limit, offset).
+		Scan(&cards).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return CardWithOccurence{}.ToArrayEntity(cards), nil
+}
+
 func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardStatistics, error) {
 	var cardStatistics *UserCardsStatistics
 	err := r.db.

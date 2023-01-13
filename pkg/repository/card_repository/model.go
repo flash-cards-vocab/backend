@@ -51,6 +51,50 @@ func (c Card) ToArrayEntity(cards []*Card) []*entity.Card {
 	return res
 }
 
+type CardWithOccurence struct {
+	Id         uuid.UUID `gorm:"primary_key;column:id"`
+	Word       string    `gorm:"column:word"`
+	ImageUrl   string    `gorm:"column:imageUrl"`
+	Definition string    `gorm:"column:definition"`
+	Sentence   string    `gorm:"column:sentence"`
+	Antonyms   string    `gorm:"column:antonyms"`
+	Synonyms   string    `gorm:"column:synonyms"`
+	AuthorId   uuid.UUID `gorm:"column:authorId"`
+	Occurence  int       `gorm:"column:occurence"`
+}
+
+func (c *CardWithOccurence) ToEntity() *entity.CardWithOccurence {
+	return &entity.CardWithOccurence{
+		Id:         c.Id,
+		Word:       c.Word,
+		ImageUrl:   c.ImageUrl,
+		Definition: c.Definition,
+		Sentence:   c.Sentence,
+		Antonyms:   c.Antonyms,
+		Synonyms:   c.Synonyms,
+		AuthorId:   c.AuthorId,
+		Occurence:  c.Occurence,
+	}
+}
+
+func (c CardWithOccurence) ToArrayEntity(cards []*CardWithOccurence) []*entity.CardWithOccurence {
+	res := []*entity.CardWithOccurence{}
+	for _, card := range cards {
+		res = append(res, &entity.CardWithOccurence{
+			Id:         card.Id,
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			AuthorId:   card.AuthorId,
+			Occurence:  card.Occurence,
+		})
+	}
+	return res
+}
+
 type CardUserProgress struct {
 	Id            uuid.UUID                   `gorm:"primary_key;column:id"`
 	CardId        uuid.UUID                   `gorm:"column:card_id"`
