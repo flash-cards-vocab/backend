@@ -963,16 +963,19 @@ func (uc *usecase) UpdateCollection(
 
 		}
 	}
-
-	err = uc.cardRepo.CreateMultipleCards(collectionData.Id, cardsToCreate, userId)
-	if err != nil {
-		fmt.Println(err)
-		return err
+	if len(cardsToCreate) > 0 {
+		err = uc.cardRepo.CreateMultipleCards(collectionData.Id, cardsToCreate, userId)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 	}
-	err = uc.cardRepo.RemoveMultipleCardsFromCollection(cardsToRemove)
-	if err != nil {
-		fmt.Println(err)
-		return err
+	if len(cardsToRemove) > 0 {
+		err = uc.cardRepo.RemoveMultipleCardsFromCollection(cardsToRemove)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 	}
 	return nil
 }
