@@ -56,5 +56,16 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	card.PUT("/know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.KnowCard)
 	card.PUT("/dont-know/:card_id/:collection_id", middleware.AuthorizeJWT, h.CardHandler.DontKnowCard)
 
+	// Open routes
+	unregistered := v1.Group("/unregistered")
+	// Open collection routes
+	collectionUnregistered := unregistered.Group("/collection")
+	collectionUnregistered.GET("/recommended", h.CollectionHandler.GetRecommendedCollectionsPreview)
+	collectionUnregistered.GET("/full/:id", h.CollectionHandler.GetCollectionWithCards)
+	collectionUnregistered.GET("/search/:query", h.CollectionHandler.SearchCollectionByName)
+
+	// Open card routes
+	// cardUnregistered := unregistered.Group("/card")
+
 	return router, nil
 }

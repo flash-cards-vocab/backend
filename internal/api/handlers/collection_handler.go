@@ -374,3 +374,67 @@ func (h *handlerCollection) UpdateCollection(c *gin.Context) {
 		}
 	}
 }
+
+func (h *handlerCollection) UnregisteredGetRecommendedCollectionsPreview(c *gin.Context) {
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil || size < 1 {
+		size = 5
+	}
+
+	data, err := h.collectionUsecase.GetRecommendedCollectionsPreviewForUnregistered(page, size)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+}
+
+func (h *handlerCollection) UnregisteredGetCollectionWithCards(c *gin.Context) {
+	paramId := c.Param("id")
+	id, err := uuid.Parse(paramId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+	}
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil || size < 1 {
+		size = 10
+	}
+
+	data, err := h.collectionUsecase.GetCollectionWithCardsForUnregistered(id, page, size)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+}
+
+func (h *handlerCollection) UnregisteredSearchCollectionByName(c *gin.Context) {
+	text := c.Param("query")
+
+	data, err := h.collectionUsecase.SearchCollectionByNameForUnregistered(text)
+	if err == nil {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
+	} else {
+		if errors.Is(err, collectionUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+}

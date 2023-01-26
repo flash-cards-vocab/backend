@@ -14,7 +14,7 @@ var ErrCollectionMetricsNotFound = errors.New("collection metrics not found")
 
 type CollectionRepository interface {
 	GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error)
-	GetCollectionTotal(collection_id uuid.UUID) (int, error)
+	GetTotalCardsInCollection(collection_id uuid.UUID) (int, error)
 	GetRecommendedCollectionsPreview(userId uuid.UUID, limit, offset int) ([]*entity.Collection, error)
 	GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
 	GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error)
@@ -39,4 +39,8 @@ type CollectionRepository interface {
 	GetCollection(id uuid.UUID) (*entity.Collection, error)
 	GetCollectionCards(collectionId, userId uuid.UUID, limit, offset int) (*entity.CardForUserPagination, error)
 	GetUserCollectionsStatistics(userId uuid.UUID) (*entity.UserCollectionStatistics, error)
+
+	SearchCollectionByNameForUnregistered(search string) ([]*entity.Collection, error)
+	GetCollectionCardsForUnregistered(collectionId uuid.UUID, limit int, offset int) (*entity.CardForUserPagination, error)
+	GetRecommendedCollectionsPreviewForUnregistered(limit, offset int) ([]*entity.Collection, error)
 }

@@ -21,6 +21,10 @@ type RestCollectionHandler interface {
 	GetCollectionUserProgress(c *gin.Context)
 	UploadCollectionWithFile(c *gin.Context)
 	UpdateCollection(c *gin.Context)
+
+	UnregisteredGetRecommendedCollectionsPreview(c *gin.Context)
+	UnregisteredGetCollectionWithCards(c *gin.Context)
+	UnregisteredSearchCollectionByName(c *gin.Context)
 }
 
 type RestUserHandler interface {
