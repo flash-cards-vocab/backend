@@ -29,12 +29,15 @@ func (c *Collection) ToEntity() *entity.Collection {
 }
 
 type CollectionUserProgress struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
-	UserId       uuid.UUID `gorm:"column:user_id"`
-	Mastered     uint32    `gorm:"column:mastered"`
-	Reviewing    uint32    `gorm:"column:reviewing"`
-	Learning     uint32    `gorm:"column:learning"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	UserId       uuid.UUID  `gorm:"column:user_id"`
+	Mastered     uint32     `gorm:"column:mastered"`
+	Reviewing    uint32     `gorm:"column:reviewing"`
+	Learning     uint32     `gorm:"column:learning"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
@@ -49,13 +52,16 @@ func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
 }
 
 type CollectionUserMetrics struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	UserId       uuid.UUID `gorm:"column:user_id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
-	Liked        bool      `gorm:"column:liked"`
-	Disliked     bool      `gorm:"column:disliked"`
-	Viewed       bool      `gorm:"column:viewed"`
-	Starred      bool      `gorm:"column:starred"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	UserId       uuid.UUID  `gorm:"column:user_id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	Liked        bool       `gorm:"column:liked"`
+	Disliked     bool       `gorm:"column:disliked"`
+	Viewed       bool       `gorm:"column:viewed"`
+	Starred      bool       `gorm:"column:starred"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionUserMetrics) ToEntity() *entity.CollectionUserMetrics {
@@ -71,11 +77,14 @@ func (c *CollectionUserMetrics) ToEntity() *entity.CollectionUserMetrics {
 }
 
 type CollectionMetrics struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
-	Likes        uint32    `gorm:"column:likes"`
-	Dislikes     uint32    `gorm:"column:dislikes"`
-	Views        uint32    `gorm:"column:views"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	Likes        uint32     `gorm:"column:likes"`
+	Dislikes     uint32     `gorm:"column:dislikes"`
+	Views        uint32     `gorm:"column:views"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionMetrics) ToEntity() *entity.CollectionMetrics {
@@ -89,9 +98,12 @@ func (c *CollectionMetrics) ToEntity() *entity.CollectionMetrics {
 }
 
 type CollectionCards struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	CardId       uuid.UUID `gorm:"column:card_id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	CardId       uuid.UUID  `gorm:"column:card_id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionCards) ToEntity() *entity.CollectionCards {

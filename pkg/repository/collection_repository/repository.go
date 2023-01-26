@@ -67,6 +67,8 @@ func (r *repository) GetCollectionTotal(collectionId uuid.UUID) (int, error) {
 			INNER JOIN collection ON collection_cards.collection_id = collection.id
 			WHERE collection.id=?
 			AND card.deleted_at IS null
+			AND collection_cards.deleted_at IS null
+			AND collection.deleted_at IS null
 		`, collectionId).
 		Scan(&total).
 		Error
@@ -108,7 +110,7 @@ func (r *repository) GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Col
 			ON coll_um.collection_id = coll.id
 			WHERE author_id <> ? 
 			AND coll_um.liked=TRUE
-			deleted_at IS null
+			AND deleted_at IS null
 		`, userId).
 		Find(&datas).
 		Error
@@ -131,7 +133,7 @@ func (r *repository) GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.C
 			ON coll_um.collection_id = coll.id
 			WHERE author_id <> ? 
 			AND coll_um.starred=TRUE
-			deleted_at IS null
+			AND deleted_at IS null
 		`, userId).
 		Find(&datas).
 		Error
@@ -149,7 +151,7 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -159,9 +161,10 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 	if metrics.Starred {
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"starred": false,
+				"starred":    false,
+				"updated_at": time.Now(),
 			}).Error
 		if err != nil {
 			return err
@@ -169,9 +172,10 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 	} else {
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"starred": true,
+				"starred":    true,
+				"updated_at": time.Now(),
 			}).Error
 		if err != nil {
 			return err
@@ -189,6 +193,8 @@ func (r *repository) CreateCollectionUserMetrics(id, userId uuid.UUID) error {
 		Disliked:     false,
 		Viewed:       true,
 		Starred:      false,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err := r.db.Table("collection_user_metrics").Create(collUserMetrics).Error
 	if err != nil {
@@ -205,6 +211,8 @@ func (r *repository) CreateCollectionUserProgress(id, userId uuid.UUID) error {
 		Mastered:     0,
 		Reviewing:    0,
 		Learning:     0,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err := r.db.Table("collection_user_progress").Create(collUserProgress).Error
 	if err != nil {
@@ -217,7 +225,7 @@ func (r *repository) IsCollectionLikedOrDislikedByUser(id, userId uuid.UUID) (bo
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -233,7 +241,7 @@ func (r *repository) IsCollectionLikedByUser(id, userId uuid.UUID) (bool, error)
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -246,7 +254,7 @@ func (r *repository) IsCollectionDislikedByUser(id, userId uuid.UUID) (bool, err
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -259,7 +267,7 @@ func (r *repository) IsCollectionViewedByUser(id, userId uuid.UUID) (bool, error
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -272,41 +280,45 @@ func (r *repository) CollectionLikeInteraction(id, userId uuid.UUID, isLiked boo
 	metrics := CollectionMetrics{}
 	err := r.db.
 		Table("collection_metrics").
-		Where("collection_id = ?", id).
+		Where("collection_id = ? AND deleted_at IS null", id).
 		First(&metrics).
 		Error
 	if err != nil {
 		return err
 	}
 	if isLiked {
-		err = r.db.Table("collection_metrics").Where("collection_id = ?", id).
+		err = r.db.Table("collection_metrics").Where("collection_id = ? AND deleted_at IS null", id).
 			Updates(map[string]interface{}{
-				"likes": metrics.Likes - 1,
+				"likes":      metrics.Likes - 1,
+				"updated_at": time.Now(),
 			}).Error
 		if err != nil {
 			return err
 		}
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"liked": false,
+				"liked":      false,
+				"updated_at": time.Now(),
 			}).
 			Error
 		if err != nil {
 			return err
 		}
 	} else {
-		err = r.db.Table("collection_metrics").Where("collection_id = ?", id).
+		err = r.db.Table("collection_metrics").Where("collection_id = ? AND deleted_at IS null", id).
 			Updates(map[string]interface{}{
-				"likes": metrics.Likes + 1,
+				"likes":      metrics.Likes + 1,
+				"updated_at": time.Now(),
 			}).Error
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"liked":    true,
-				"disliked": false,
+				"liked":      true,
+				"disliked":   false,
+				"updated_at": time.Now(),
 			}).
 			Error
 		if err != nil {
@@ -321,38 +333,42 @@ func (r *repository) CollectionDislikeInteraction(id, userId uuid.UUID, isDislik
 	metrics := CollectionMetrics{}
 	err := r.db.
 		Table("collection_metrics").
-		Where("collection_id = ?", id).
+		Where("collection_id = ? AND deleted_at IS null", id).
 		First(&metrics).
 		Error
 	if err != nil {
 		return err
 	}
 	if isDisliked {
-		err = r.db.Table("collection_metrics").Where("collection_id = ?", id).
+		err = r.db.Table("collection_metrics").Where("collection_id = ? AND deleted_at IS null", id).
 			Updates(map[string]interface{}{
-				"dislikes": metrics.Dislikes - 1,
+				"dislikes":   metrics.Dislikes - 1,
+				"updated_at": time.Now(),
 			}).Error
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"disliked": false,
+				"disliked":   false,
+				"updated_at": time.Now(),
 			}).
 			Error
 		if err != nil {
 			return err
 		}
 	} else {
-		err = r.db.Table("collection_metrics").Where("collection_id = ?", id).
+		err = r.db.Table("collection_metrics").Where("collection_id = ? AND deleted_at IS null", id).
 			Updates(map[string]interface{}{
-				"dislikes": metrics.Dislikes + 1,
+				"dislikes":   metrics.Dislikes + 1,
+				"updated_at": time.Now(),
 			}).Error
 		err = r.db.
 			Table("collection_user_metrics").
-			Where("collection_id = ? AND user_id = ?", id, userId).
+			Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 			Updates(map[string]interface{}{
-				"disliked": true,
-				"liked":    false,
+				"disliked":   true,
+				"liked":      false,
+				"updated_at": time.Now(),
 			}).
 			Error
 		if err != nil {
@@ -367,15 +383,16 @@ func (r *repository) ViewCollection(id, userId uuid.UUID) error {
 	metrics := CollectionMetrics{}
 	err := r.db.
 		Table("collection_metrics").
-		Where("collection_id = ?", id).
+		Where("collection_id = ? AND deleted_at IS null", id).
 		First(&metrics).
 		Error
 	if err != nil {
 		return err
 	}
-	err = r.db.Table("collection_metrics").Where("collection_id = ?", id).
+	err = r.db.Table("collection_metrics").Where("collection_id = ? AND deleted_at IS null", id).
 		Updates(map[string]interface{}{
-			"views": metrics.Views + 1,
+			"views":      metrics.Views + 1,
+			"updated_at": time.Now(),
 		}).Error
 	if err != nil {
 		return err
@@ -393,6 +410,7 @@ func (r *repository) SearchCollectionByName(search string, userId uuid.UUID) ([]
 			WHERE lower(coll.name) like lower(?) 
 			AND coll.deleted_at IS null
 			AND coll.author_id <> ?
+			AND coll.deleted_at IS null
 			order by cm.likes limit 10
 		`, "%"+search+"%", userId).
 		Find(&datas).
@@ -431,6 +449,8 @@ func (r *repository) CreateCollection(collection entity.Collection) (*entity.Col
 		Mastered:     0,
 		Reviewing:    0,
 		Learning:     0,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err = r.db.Table("collection_user_progress").Create(userProgress).Error
 	if err != nil {
@@ -444,6 +464,8 @@ func (r *repository) CreateCollection(collection entity.Collection) (*entity.Col
 		Liked:        false,
 		Disliked:     false,
 		Viewed:       true,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err = r.db.Table("collection_user_metrics").Create(collUserMetrics).Error
 	if err != nil {
@@ -456,6 +478,8 @@ func (r *repository) CreateCollection(collection entity.Collection) (*entity.Col
 		Likes:        0,
 		Dislikes:     0,
 		Views:        1,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	err = r.db.Table("collection_metrics").Create(collectionMetrics).Error
 	if err != nil {
@@ -470,7 +494,7 @@ func (r *repository) GetCollectionMetrics(id uuid.UUID) (*entity.CollectionMetri
 	metrics := CollectionMetrics{}
 	err := r.db.
 		Table("collection_metrics").
-		Where("collection_id = ?", id).
+		Where("collection_id = ? AND deleted_at IS null", id).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -491,7 +515,7 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 	metrics := CollectionUserProgress{}
 	err := r.db.
 		Table("collection_user_progress").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -515,7 +539,7 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 	metrics := CollectionUserMetrics{}
 	err := r.db.
 		Table("collection_user_metrics").
-		Where("collection_id = ? AND user_id = ?", id, userId).
+		Where("collection_id = ? AND user_id = ? AND deleted_at IS null", id, userId).
 		First(&metrics).
 		Error
 	if err != nil {
@@ -562,6 +586,9 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
 			WHERE collection.id=?
 			AND card.deleted_at IS null
+			AND collection_cards.deleted_at IS null
+			AND collection.deleted_at IS null
+			AND card_user_progress.deleted_at IS null
 			LIMIT ?
 			OFFSET ?
 		`, userId, collectionId, limit, offset).
@@ -578,6 +605,8 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 		INNER JOIN collection ON collection_cards.collection_id = collection.id
 		WHERE collection.id=?
 		AND card.deleted_at IS null
+		AND collection_cards.deleted_at IS null
+		AND collection.deleted_at IS null
 	`, collectionId).First(&total).Error
 
 	res := []*entity.CardForUser{}

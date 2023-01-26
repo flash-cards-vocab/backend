@@ -112,7 +112,7 @@ func (r *repository) GetUserCardsStatistics(userId uuid.UUID) (*entity.UserCardS
 		COUNT(*) FILTER (WHERE status='reviewing') AS reviewing,
 		COUNT(*) FILTER (WHERE status='learning') AS learning
 		FROM card_user_progress
-		WHERE user_id=?`, userId).
+		WHERE user_id=? AND deleted_at IS NULL`, userId).
 		Scan(&cardStatistics).
 		Error
 	if err != nil {
@@ -169,6 +169,8 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 			UserId:        userId,
 			Status:        entity.CardUserProgressType_None,
 			LearningCount: 0,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
 		})
 	}
 	err = r.db.Table("card_user_progress").Create(cardUserProgress).Error
@@ -179,10 +181,12 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 	cardMetrics := []*CardMetrics{}
 	for _, card := range cardsModels {
 		cardMetrics = append(cardMetrics, &CardMetrics{
-			Id:       uuid.New(),
-			CardId:   card.Id,
-			Likes:    0,
-			Dislikes: 0,
+			Id:        uuid.New(),
+			CardId:    card.Id,
+			Likes:     0,
+			Dislikes:  0,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		})
 	}
 	err = r.db.Table("card_metrics").Create(cardMetrics).Error
@@ -197,6 +201,8 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 			Id:           uuid.New(),
 			CardId:       card.Id,
 			CollectionId: collectionId,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		})
 	}
 	err = r.db.Table("collection_cards").Create(collectionCards).Error
@@ -209,11 +215,15 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 
 func (r *repository) RemoveMultipleCardsFromCollection(cardsToRemove []*entity.CollectionCards) error {
 	for _, card := range cardsToRemove {
-		err := r.db.
-			Table("collection_cards").
-			Where("collection_id=? AND card_id=?", card.CollectionId, card.CardId).
-			Delete(CollectionCards{}).
-			Error
+		// err := r.db.
+		// 	Table("collection_cards").
+		// 	Delete(CollectionCards{}).
+		// 	Error
+		err := r.db.Table("collection_cards").
+			Where("collection_id=? AND card_id=? AND deleted_at IS NULL", card.CollectionId, card.CardId).
+			Updates(map[string]interface{}{
+				"deleted_at": time.Now(),
+			}).Error
 		if err != nil {
 			return err
 		}
@@ -225,6 +235,8 @@ func (r *repository) AssignCardToCollection(collectionId uuid.UUID, cardId uuid.
 	collectionCard := &CollectionCards{
 		CollectionId: collectionId,
 		CardId:       cardId,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	return r.db.Table("collection_cards").Create(collectionCard).Error
 }
@@ -234,7 +246,7 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 	collectionUserProgress := CollectionUserProgress{}
 	err := r.db.
 		Table("collection_user_progress").
-		Where("collection_id=? AND user_id=?", collectionId, userId).
+		Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 		First(&collectionUserProgress).
 		Error
 	if err != nil {
@@ -246,10 +258,12 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				Mastered:     0,
 				Reviewing:    0,
 				Learning:     0,
+				CreatedAt:    time.Now(),
+				UpdatedAt:    time.Now(),
 			}
 			err = r.db.
 				Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Create(&collectionUserProgress).
 				Error
 			if err != nil {
@@ -264,7 +278,7 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 	cardUserPrg := CardUserProgress{}
 	err = r.db.
 		Table("card_user_progress").
-		Where("card_id=? AND user_id=?", cardId, userId).
+		Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 		First(&cardUserPrg).
 		Error
 	if err != nil {
@@ -276,6 +290,8 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 				UserId:        userId,
 				Status:        entity.CardUserProgressType_Mastered,
 				LearningCount: 3,
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
 			}
 			err := r.db.
 				Table("card_user_progress").
@@ -287,9 +303,10 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			}
 
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"mastered": collectionUserProgress.Mastered + 1,
+					"mastered":   collectionUserProgress.Mastered + 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -303,20 +320,22 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 	} else {
 		if cardUserPrg.LearningCount == 2 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Mastered,
 					"learning_count": cardUserPrg.LearningCount + 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
 				return err
 			}
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"mastered":  collectionUserProgress.Mastered + 1,
-					"reviewing": math.Max(float64(collectionUserProgress.Reviewing), 1) - 1,
+					"mastered":   collectionUserProgress.Mastered + 1,
+					"reviewing":  math.Max(float64(collectionUserProgress.Reviewing), 1) - 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -325,10 +344,11 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 
 		} else if cardUserPrg.LearningCount == 1 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
 					"learning_count": cardUserPrg.LearningCount + 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -347,10 +367,11 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 
 		} else if cardUserPrg.LearningCount == 0 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
 					"learning_count": cardUserPrg.LearningCount + 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -358,10 +379,11 @@ func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {
 			}
 
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"learning":  math.Max(float64(collectionUserProgress.Learning), 1) - 1,
-					"reviewing": collectionUserProgress.Reviewing + 1,
+					"learning":   math.Max(float64(collectionUserProgress.Learning), 1) - 1,
+					"reviewing":  collectionUserProgress.Reviewing + 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -380,7 +402,7 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 	collectionUserProgress := CollectionUserProgress{}
 	err := r.db.
 		Table("collection_user_progress").
-		Where("collection_id=? AND user_id=?", collectionId, userId).
+		Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 		First(&collectionUserProgress).
 		Error
 	if err != nil {
@@ -392,6 +414,8 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				Mastered:     0,
 				Reviewing:    0,
 				Learning:     0,
+				CreatedAt:    time.Now(),
+				UpdatedAt:    time.Now(),
 			}
 			err = r.db.
 				Table("collection_user_progress").
@@ -410,7 +434,7 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 	cardUserPrg := CardUserProgress{}
 	err = r.db.
 		Table("card_user_progress").
-		Where("card_id=? AND user_id=?", cardId, userId).
+		Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 		First(&cardUserPrg).
 		Error
 
@@ -423,6 +447,8 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 				UserId:        userId,
 				Status:        entity.CardUserProgressType_Learning,
 				LearningCount: 0,
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
 			}
 			err := r.db.
 				Table("card_user_progress").
@@ -434,9 +460,10 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 			}
 
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"learning": collectionUserProgress.Learning + 1,
+					"learning":   collectionUserProgress.Learning + 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -450,20 +477,22 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 	} else {
 		if cardUserPrg.LearningCount == 3 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Reviewing,
 					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
 				return err
 			}
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"mastered":  math.Max(float64(collectionUserProgress.Mastered), 1) - 1,
-					"reviewing": collectionUserProgress.Reviewing + 1,
+					"mastered":   math.Max(float64(collectionUserProgress.Mastered), 1) - 1,
+					"reviewing":  collectionUserProgress.Reviewing + 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -472,9 +501,10 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 
 		} else if cardUserPrg.LearningCount == 2 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
@@ -483,20 +513,22 @@ func (r *repository) DontKnowCard(collectionId, cardId, userId uuid.UUID) error 
 
 		} else if cardUserPrg.LearningCount == 1 {
 			err = r.db.Table("card_user_progress").
-				Where("card_id=? AND user_id=?", cardId, userId).
+				Where("card_id=? AND user_id=? AND deleted_at IS NULL", cardId, userId).
 				Updates(map[string]interface{}{
 					"status":         entity.CardUserProgressType_Learning,
 					"learning_count": math.Max(float64(cardUserPrg.LearningCount), 1) - 1,
+					"updated_at":     time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()
 				return err
 			}
 			err = r.db.Table("collection_user_progress").
-				Where("collection_id=? AND user_id=?", collectionId, userId).
+				Where("collection_id=? AND user_id=? AND deleted_at IS NULL", collectionId, userId).
 				Updates(map[string]interface{}{
-					"learning":  collectionUserProgress.Learning + 1,
-					"reviewing": math.Max(float64(collectionUserProgress.Reviewing), 1) - 1,
+					"learning":   collectionUserProgress.Learning + 1,
+					"reviewing":  math.Max(float64(collectionUserProgress.Reviewing), 1) - 1,
+					"updated_at": time.Now(),
 				}).Error
 			if err != nil {
 				tx.Rollback()

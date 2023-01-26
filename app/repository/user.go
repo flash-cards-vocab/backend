@@ -12,6 +12,8 @@ var ErrUserNotFound = errors.New("loan request not found")
 type UserRepository interface {
 	CreateUser(user entity.User) (*entity.User, error)
 	CheckIfUserExistsByEmail(email string) (bool, error)
+	CheckIfUsernameExists(username string) (bool, error)
 	GetUserByEmail(email string) (*entity.User, error)
 	GetUserById(id uuid.UUID) (*entity.User, error)
+	GetUserByUsername(username string) (*entity.User, error)
 }

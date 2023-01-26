@@ -36,6 +36,24 @@ func (h *handlerUser) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: data})
 }
 
+func (h *handlerUser) UsernameExists(c *gin.Context) {
+	username := c.Param("username")
+
+	exists, err := h.userUsecase.UsernameExists(username)
+	if err != nil {
+		if errors.Is(err, userUC.ErrNotFound) {
+			c.JSON(http.StatusNotFound, handlerIntf.ErrorResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, handlerIntf.ErrorResponse{Message: err.Error()})
+		}
+	}
+	if exists {
+		c.JSON(http.StatusNotAcceptable, handlerIntf.SuccessResponse{Result: exists})
+	} else {
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: exists})
+	}
+}
+
 func (h *handlerUser) Register(c *gin.Context) {
 	var newUserData entity.UserRegistration
 	err := c.ShouldBindJSON(&newUserData)

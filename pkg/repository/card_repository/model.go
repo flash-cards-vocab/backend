@@ -101,6 +101,9 @@ type CardUserProgress struct {
 	UserId        uuid.UUID                   `gorm:"column:user_id"`
 	Status        entity.CardUserProgressType `gorm:"column:status"`
 	LearningCount uint32                      `gorm:"column:learning_count"`
+	CreatedAt     time.Time                   `gorm:"column:created_at"`
+	UpdatedAt     time.Time                   `gorm:"column:updated_at"`
+	DeletedAt     *time.Time                  `gorm:"column:deleted_at"`
 }
 
 func (c *CardUserProgress) ToEntity() *entity.CardUserProgress {
@@ -113,10 +116,13 @@ func (c *CardUserProgress) ToEntity() *entity.CardUserProgress {
 }
 
 type CardMetrics struct {
-	Id       uuid.UUID `gorm:"primary_key;column:id"`
-	CardId   uuid.UUID `gorm:"column:card_id"`
-	Likes    uint32    `gorm:"column:likes"`
-	Dislikes uint32    `gorm:"column:dislikes"`
+	Id        uuid.UUID  `gorm:"primary_key;column:id"`
+	CardId    uuid.UUID  `gorm:"column:card_id"`
+	Likes     uint32     `gorm:"column:likes"`
+	Dislikes  uint32     `gorm:"column:dislikes"`
+	CreatedAt time.Time  `gorm:"column:created_at"`
+	UpdatedAt time.Time  `gorm:"column:updated_at"`
+	DeletedAt *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CardMetrics) ToEntity() *entity.CardMetrics {
@@ -129,9 +135,12 @@ func (c *CardMetrics) ToEntity() *entity.CardMetrics {
 }
 
 type CollectionCards struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	CardId       uuid.UUID `gorm:"column:card_id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	CardId       uuid.UUID  `gorm:"column:card_id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionCards) ToEntity() *entity.CollectionCards {
@@ -153,12 +162,15 @@ func (c CollectionCards) FromArrayEntity(cards []*entity.CollectionCards) []*Col
 }
 
 type CollectionUserProgress struct {
-	Id           uuid.UUID `gorm:"primary_key;column:id"`
-	CollectionId uuid.UUID `gorm:"column:collection_id"`
-	UserId       uuid.UUID `gorm:"column:user_id"`
-	Mastered     uint32    `gorm:"column:mastered"`
-	Reviewing    uint32    `gorm:"column:reviewing"`
-	Learning     uint32    `gorm:"column:learning"`
+	Id           uuid.UUID  `gorm:"primary_key;column:id"`
+	CollectionId uuid.UUID  `gorm:"column:collection_id"`
+	UserId       uuid.UUID  `gorm:"column:user_id"`
+	Mastered     uint32     `gorm:"column:mastered"`
+	Reviewing    uint32     `gorm:"column:reviewing"`
+	Learning     uint32     `gorm:"column:learning"`
+	CreatedAt    time.Time  `gorm:"column:created_at"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (c *CollectionUserProgress) ToEntity() *entity.CollectionUserProgress {
