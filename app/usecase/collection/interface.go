@@ -32,4 +32,9 @@ type UseCase interface {
 
 	UploadCollectionWithFile(userId uuid.UUID, file multipart.File, filename string) (*entity.CreateMultipleCollectionResponse, error)
 	UpdateCollection(userId uuid.UUID, updateData *entity.UpdateCollectionRequest) error
+
+	// Open routes
+	GetRecommendedCollectionsPreviewForUnregistered(page, size int) ([]*entity.UserCollectionResponse, error)
+	GetCollectionWithCardsForUnregistered(id uuid.UUID, page, size int) (*entity.GetCollectionWithCardsResponse, error)
+	SearchCollectionByNameForUnregistered(text string) ([]*entity.UserCollectionResponse, error)
 }

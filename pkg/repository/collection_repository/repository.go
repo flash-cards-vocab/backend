@@ -20,12 +20,15 @@ func New(db *gorm.DB) repositoryIntf.CollectionRepository {
 
 func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error) {
 	datas := []Collection{}
+	// Raw(`
+	// SELECT * FROM collection
+	// WHERE author_id = ?
+	// AND deleted_at IS null
+	// `, userId).
+
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection
-			WHERE author_id = ?
-			AND deleted_at IS null
-		`, userId).
+		Table("collection").
+		Where("author_id=? AND deleted_at IS NULL", userId).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -39,16 +42,17 @@ func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, e
 }
 
 func (r *repository) GetUserCollectionsStatistics(userId uuid.UUID) (*entity.UserCollectionStatistics, error) {
-	// panic("not implemented")
 	var collectionsCreated uint32
 	err := r.db.
-		Raw(`
-			SELECT COUNT(*) FROM collection
-			WHERE author_id=?
-			AND deleted_at IS null
-		`, userId).
+		Table("collection").
+		Where("author_id=? AND deleted_at IS null", userId).
 		Scan(&collectionsCreated).
 		Error
+		// Raw(`
+		// 	SELECT COUNT(*) FROM collection
+		// 	WHERE author_id=?
+		// 	AND deleted_at IS null
+		// `, userId).
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +62,7 @@ func (r *repository) GetUserCollectionsStatistics(userId uuid.UUID) (*entity.Use
 	}, nil
 }
 
-func (r *repository) GetCollectionTotal(collectionId uuid.UUID) (int, error) {
+func (r *repository) GetTotalCardsInCollection(collectionId uuid.UUID) (int, error) {
 	var total *int
 	err := r.db.
 		Raw(`
@@ -655,4 +659,104 @@ func (r *repository) UpdateCollection(collection entity.Collection) error {
 		Where("id = ? AND deleted_at is NULL", collection.Id).
 		Updates(collectionToUpd).
 		Error
+}
+
+func (r *repository) SearchCollectionByNameForUnregistered(search string) ([]*entity.Collection, error) {
+	datas := []*Collection{}
+	err := r.db.
+		Raw(`
+			SELECT coll.* FROM collection coll
+			INNER JOIN collection_metrics cm on coll.id = cm.collection_id 
+			WHERE lower(coll.name) like lower(?) 
+			AND coll.deleted_at IS null
+			order by cm.likes limit 10
+		`, "%"+search+"%").
+		Find(&datas).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	resp := []*entity.Collection{}
+	for _, data := range datas {
+		resp = append(resp, data.ToEntity())
+	}
+	return resp, nil
+}
+
+func (r *repository) GetCollectionCardsForUnregistered(collectionId uuid.UUID, limit int, offset int) (*entity.CardForUserPagination, error) {
+	cards := []*CardForUser{}
+	err := r.db.
+		Raw(`
+			SELECT card.*, card_user_progress.status FROM card
+			INNER JOIN collection_cards ON collection_cards.card_id = card.id
+			INNER JOIN collection ON collection_cards.collection_id = collection.id
+			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
+			WHERE collection.id=?
+			AND card.deleted_at IS null
+			AND collection_cards.deleted_at IS null
+			AND collection.deleted_at IS null
+			AND card_user_progress.deleted_at IS null
+			LIMIT ?
+			OFFSET ?
+		`, collectionId, limit, offset).
+		Find(&cards).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	var total int
+	err = r.db.Raw(`
+		SELECT COUNT(*) FROM card
+		INNER JOIN collection_cards ON collection_cards.card_id = card.id
+		INNER JOIN collection ON collection_cards.collection_id = collection.id
+		WHERE collection.id=?
+		AND card.deleted_at IS null
+		AND collection_cards.deleted_at IS null
+		AND collection.deleted_at IS null
+	`, collectionId).First(&total).Error
+
+	res := []*entity.CardForUser{}
+	for _, card := range cards {
+		res = append(res, &entity.CardForUser{
+			Id:         card.Id,
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			Status:     card.Status,
+			AuthorId:   card.AuthorId,
+		})
+	}
+
+	data := &entity.CardForUserPagination{
+		CardForUser: CardForUser{}.ToArrayEntity(cards),
+		Page:        limit,
+		Size:        offset,
+		Total:       total,
+	}
+	return data, nil
+}
+
+func (r *repository) GetRecommendedCollectionsPreviewForUnregistered(limit, offset int) ([]*entity.Collection, error) {
+	datas := []Collection{}
+	err := r.db.
+		Raw(`
+			SELECT * FROM collection
+			WHERE deleted_at IS null 
+			LIMIT ?
+			OFFSET ?
+		`, limit, offset).
+		Find(&datas).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	resp := []*entity.Collection{}
+	for _, data := range datas {
+		resp = append(resp, data.ToEntity())
+	}
+	return resp, nil
 }
