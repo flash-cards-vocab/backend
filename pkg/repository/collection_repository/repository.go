@@ -583,7 +583,6 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 			SELECT card.* FROM card
 			INNER JOIN collection_cards ON collection_cards.card_id = card.id
 			INNER JOIN collection ON collection_cards.collection_id = collection.id
-			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id 
 			WHERE collection.id=?
 			AND card.deleted_at IS null
 			AND collection_cards.deleted_at IS null
