@@ -22,6 +22,7 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	// User POST requests
 	user.POST("/login", h.UserHandler.Login)
 	user.POST("/register", h.UserHandler.Register)
+	user.GET("/register/username-exists/:username", h.UserHandler.UsernameExists)
 
 	// Collection routes
 	collection := v1.Group("/collection")

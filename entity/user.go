@@ -10,6 +10,7 @@ import (
 type User struct {
 	Id       uuid.UUID `json:"id,omitempty"`
 	Name     string    `json:"name,omitempty"`
+	Username string    `json:"username,omitempty"`
 	Email    string    `json:"email,omitempty"`
 	Password string    `json:"password,omitempty"`
 }
@@ -43,7 +44,7 @@ type UserWithAuthToken struct {
 }
 
 type UserRegistration struct {
-	Name     string    `json:"name,omitempty"`
+	Username string    `json:"username,omitempty"`
 	Email    string    `json:"email,omitempty"`
 	Password string    `json:"password,omitempty"`
 	Token    uuid.UUID `json:"token,omitempty"`

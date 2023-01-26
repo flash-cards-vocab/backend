@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	// "github.com/opentracing/opentracing-go"
 	// "github.com/pkg/errors"
@@ -77,13 +78,23 @@ func (uc *usecase) Register(userReg entity.UserRegistration) (*entity.UserWithAu
 		return nil, ErrUserExistsAlready
 	}
 
+	existsUsername, err := uc.userRepo.CheckIfUsernameExists(userReg.Username)
+	if err != nil {
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return nil, ErrUnexpected
+		// return nil, httpErrors.NewRestErrorWithMessage(http.StatusBadRequest, httpErrors.ErrEmailAlreadyExists, nil)
+	}
+	if existsUsername {
+		return nil, ErrUsernameExistsAlready
+	}
+
 	if err = userReg.PrepareCreate(); err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, ErrUnexpected
 	}
 
 	user := entity.User{
-		Name:     userReg.Name,
+		Username: userReg.Username,
 		Email:    userReg.Email,
 		Password: userReg.Password,
 	}
@@ -184,6 +195,19 @@ func (uc *usecase) GetProfile(userId uuid.UUID) (*entity.ProfileInfoResp, error)
 	}
 	return userProfile, nil
 
+}
+
+func (uc *usecase) UsernameExists(username string) (bool, error) {
+	_, err := uc.userRepo.GetUserByUsername(username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
+		return true, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	}
+
+	return true, nil
 }
 
 // Update existing user
