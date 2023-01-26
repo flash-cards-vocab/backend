@@ -460,13 +460,17 @@ func (uc *usecase) GetCollectionWithCards(collectionId, userId uuid.UUID, page, 
 	}
 	collectionProgress, err := uc.collectionRepo.GetCollectionUserProgress(collectionId, userId)
 	if err != nil {
-		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-			return nil, ErrNotFound
+		if errors.Is(err, repositoryIntf.ErrCollectionUserProgressNotFound) {
+			err = uc.collectionRepo.CreateCollectionUserProgress(collection.Id, userId)
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
+		} else {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-
+	}
 	limit := size
 	offset := (page - 1) * size
 	cards, err := uc.collectionRepo.GetCollectionCards(collectionId, userId, limit, offset)
