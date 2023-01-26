@@ -60,9 +60,9 @@ func NewRouter(app *application.Application) (*gin.Engine, error) {
 	unregistered := v1.Group("/unregistered")
 	// Open collection routes
 	collectionUnregistered := unregistered.Group("/collection")
-	collectionUnregistered.GET("/recommended", h.CollectionHandler.GetRecommendedCollectionsPreview)
-	collectionUnregistered.GET("/full/:id", h.CollectionHandler.GetCollectionWithCards)
-	collectionUnregistered.GET("/search/:query", h.CollectionHandler.SearchCollectionByName)
+	collectionUnregistered.GET("/recommended", h.CollectionHandler.UnregisteredGetRecommendedCollectionsPreview)
+	collectionUnregistered.GET("/full/:id", h.CollectionHandler.UnregisteredGetCollectionWithCards)
+	collectionUnregistered.GET("/search/:query", h.CollectionHandler.UnregisteredSearchCollectionByName)
 
 	// Open card routes
 	// cardUnregistered := unregistered.Group("/card")
