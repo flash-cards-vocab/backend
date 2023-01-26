@@ -78,13 +78,13 @@ func (uc *usecase) Register(userReg entity.UserRegistration) (*entity.UserWithAu
 		return nil, ErrUserExistsAlready
 	}
 
-	existsUsername, err := uc.userRepo.CheckIfUsernameExists(userReg.Username)
+	userVal, err := uc.userRepo.GetUserByUsername(userReg.Username)
 	if err != nil {
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, ErrUnexpected
 		// return nil, httpErrors.NewRestErrorWithMessage(http.StatusBadRequest, httpErrors.ErrEmailAlreadyExists, nil)
 	}
-	if existsUsername {
+	if userVal.Username != "" {
 		return nil, ErrUsernameExistsAlready
 	}
 

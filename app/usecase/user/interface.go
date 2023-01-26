@@ -10,7 +10,7 @@ import (
 
 var ErrUnexpected = errors.New("Internal error")
 var ErrUserExistsAlready = errors.New("User exists already")
-var ErrUsernameExistsAlready = errors.New("User exists already. Choose another")
+var ErrUsernameExistsAlready = errors.New("Username exists already. Choose another")
 var ErrUnauthorized = errors.New("ErrUnauthorized")
 var ErrNotFound = errors.New("ErrNotFound")
 var ErrForbiddenSelfRequest = errors.New("Self request is forbidden")

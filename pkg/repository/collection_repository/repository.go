@@ -580,20 +580,31 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 	cards := []*CardForUser{}
 	err := r.db.
 		Raw(`
-			SELECT card.*, card_user_progress.status FROM card
+			SELECT card.* FROM card
 			INNER JOIN collection_cards ON collection_cards.card_id = card.id
 			INNER JOIN collection ON collection_cards.collection_id = collection.id
-			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
+			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id 
 			WHERE collection.id=?
 			AND card.deleted_at IS null
 			AND collection_cards.deleted_at IS null
 			AND collection.deleted_at IS null
-			AND card_user_progress.deleted_at IS null
 			LIMIT ?
 			OFFSET ?
-		`, userId, collectionId, limit, offset).
+			`, collectionId, limit, offset).
 		Find(&cards).
 		Error
+
+	// Raw(`
+	// 	SELECT card.*, card_user_progress.status FROM card
+	// 	INNER JOIN collection_cards ON collection_cards.card_id = card.id
+	// 	INNER JOIN collection ON collection_cards.collection_id = collection.id
+	// 	INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
+	// 	WHERE collection.id=?
+	// 	--AND card.deleted_at IS null
+	// 	--AND collection.deleted_at IS null
+	// 	LIMIT ?
+	// 	OFFSET ?
+	// `, userId, collectionId, limit, offset).
 	if err != nil {
 		return nil, err
 	}
