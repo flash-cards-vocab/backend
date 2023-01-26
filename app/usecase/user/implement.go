@@ -198,15 +198,17 @@ func (uc *usecase) GetProfile(userId uuid.UUID) (*entity.ProfileInfoResp, error)
 }
 
 func (uc *usecase) UsernameExists(username string) (bool, error) {
-	_, err := uc.userRepo.GetUserByUsername(username)
+	user, err := uc.userRepo.GetUserByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return true, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+		return false, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
-
+	if user.Username == "" {
+		return false, nil
+	}
 	return true, nil
 }
 

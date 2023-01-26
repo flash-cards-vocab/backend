@@ -48,7 +48,7 @@ func (h *handlerUser) UsernameExists(c *gin.Context) {
 		}
 	}
 	if exists {
-		c.JSON(http.StatusNotAcceptable, handlerIntf.SuccessResponse{Result: exists})
+		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: exists})
 	} else {
 		c.JSON(http.StatusOK, handlerIntf.SuccessResponse{Result: exists})
 	}
