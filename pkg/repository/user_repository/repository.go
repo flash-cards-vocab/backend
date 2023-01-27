@@ -24,6 +24,7 @@ func (r *repository) CreateUser(user entity.User) (*entity.User, error) {
 	userToCreate := &User{
 		Id:        user.Id,
 		Name:      user.Name,
+		Username:  user.Username,
 		Email:     user.Email,
 		Password:  user.Password,
 		CreatedAt: time.Now(),
