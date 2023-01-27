@@ -246,7 +246,7 @@ func (uc *usecase) GetRecommendedCollectionsPreview(userId uuid.UUID, page, size
 		collectionResponse := &entity.UserCollectionResponse{
 			Id:               collection.Id,
 			Name:             collection.Name,
-			AuthorName:       collectionAuthor.Name,
+			AuthorName:       collectionAuthor.Username,
 			Topics:           collection.Topics,
 			TotalCards:       totalCards,
 			Likes:            collectionMetrics.Likes,
