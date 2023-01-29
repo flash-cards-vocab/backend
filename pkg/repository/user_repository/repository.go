@@ -77,7 +77,11 @@ func (r *repository) GetUserByEmail(email string) (*entity.User, error) {
 
 func (r *repository) GetUserById(id uuid.UUID) (*entity.User, error) {
 	var user *User
-	err := r.db.Table(r.tableName).Where("id=? AND deleted_at IS NULL", id).Find(&user).Error
+	err := r.db.
+		Table(r.tableName).
+		Where("id=? AND deleted_at IS NULL", id).
+		Find(&user).
+		Error
 	if err != nil {
 		return nil, err
 	}
