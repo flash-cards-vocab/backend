@@ -14,12 +14,6 @@ import (
 	// "github.com/pkg/errors"
 	"github.com/flash-cards-vocab/backend/app/repository"
 	"github.com/flash-cards-vocab/backend/entity"
-	// "github.com/AleksK1NG/api-mc/config"
-	// "github.com/AleksK1NG/api-mc/internal/auth"
-	// "github.com/AleksK1NG/api-mc/internal/entity"
-	// "github.com/AleksK1NG/api-mc/pkg/httpErrors"
-	// "github.com/AleksK1NG/api-mc/pkg/logger"
-	// "github.com/AleksK1NG/api-mc/pkg/utils"
 )
 
 // const (
@@ -186,6 +180,7 @@ func (uc *usecase) GetProfile(userId uuid.UUID) (*entity.ProfileInfoResp, error)
 
 	userProfile := &entity.ProfileInfoResp{
 		Name:               personalInfo.Name,
+		Username:           personalInfo.Username,
 		Email:              personalInfo.Email,
 		CollectionsCreated: collectionsStatistics.CollectionsCreated,
 		CardsCreated:       cardsStatistics.CardsCreated,

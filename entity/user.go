@@ -17,6 +17,7 @@ type User struct {
 
 type ProfileInfoResp struct {
 	Name               string `json:"name,omitempty"`
+	Username           string `json:"username,omitempty"`
 	Email              string `json:"email,omitempty"`
 	CollectionsCreated uint32 `json:"collectionsCreated,omitempty"`
 	CardsCreated       uint32 `json:"cardsCreated,omitempty"`
