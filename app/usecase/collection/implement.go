@@ -783,25 +783,18 @@ func (uc *usecase) SearchCollectionByName(text string, userId uuid.UUID) ([]*ent
 }
 
 func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entity.Card, userId uuid.UUID) error {
-	createdCollection, err := uc.collectionRepo.CreateCollection(collection)
-	if err != nil {
-		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-			return ErrNotFound
-		}
-		logrus.Errorf("%w: %v", ErrUnexpected, err)
-		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	}
 	urlGCP := "https://storage.googleapis.com/flashcards-images"
-
 	for _, card := range cards {
 		if !strings.Contains(card.ImageUrl, urlGCP) {
 			response, err := http.Get(card.ImageUrl)
 			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
 				return err
 			}
 			defer response.Body.Close()
 
 			if response.StatusCode != 200 {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
 				return fmt.Errorf("%w: %v", ErrUnexpected, "Received non 200 response code")
 			}
 
@@ -814,10 +807,12 @@ func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entit
 			// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
 
 			if _, err := io.Copy(wc, response.Body); err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
 				return fmt.Errorf("%w: %v", "ErrUnexpected1", err)
 			}
 
 			if err := wc.Close(); err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
 				return fmt.Errorf("%w: %v", "ErrUnexpected2", err)
 			}
 			card.ImageUrl = fileURL
@@ -825,14 +820,26 @@ func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entit
 		}
 	}
 
-	err = uc.cardRepo.CreateMultipleCards(createdCollection.Id, cards, userId)
+	_, err := uc.collectionRepo.CreateCollectionWithCards(collection, cards)
 	if err != nil {
 		if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
 			return ErrNotFound
 		}
 		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
+
+	// err = uc.cardRepo.CreateMultipleCards(createdCollection.Id, cards, userId)
+	// if err != nil {
+	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
+	// 		logrus.Errorf("%w: %v", ErrUnexpected, err)
+	// 		return ErrNotFound
+	// 	}
+	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
+	// 	return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+	// }
+	logrus.Info("Collection created successfully")
 	return nil
 }
 
@@ -843,12 +850,14 @@ func (uc *usecase) UpdateCollectionUserProgress(id uuid.UUID, mastered, reviewin
 func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.File, filename string) (*entity.CreateMultipleCollectionResponse, error) {
 	f, err := excelize.OpenReader(file)
 	if err != nil {
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, err
 	}
 	defer func() error {
 		// Close the spreadsheet.
 		if err := f.Close(); err != nil {
 			fmt.Println(err)
+			logrus.Errorf("%w: %v", ErrUnexpected, err)
 		}
 		return err
 	}()
@@ -858,21 +867,22 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 
 	collectionName, err := f.GetCellValue(f.GetSheetName(0), "B3")
 	if err != nil {
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, err
 	}
 	collectionTopics, err := f.GetCellValue(f.GetSheetName(0), "B4")
 	if err != nil {
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, err
 	}
 	collectionEnt.Name = collectionName
 	collectionEnt.Topics = strings.Split(collectionTopics, ";")
 	collectionEnt.AuthorId = userId
 
-	collection, err := uc.collectionRepo.CreateCollection(collectionEnt)
-
 	rows, err := f.GetRows(f.GetSheetName(0))
 	if err != nil {
 		fmt.Println(err)
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, err
 	}
 	for rowI := 7; rowI < len(rows); rowI++ {
@@ -899,12 +909,13 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 
 		cards = append(cards, card)
 	}
-	err = uc.cardRepo.CreateMultipleCards(collection.Id, cards, userId)
+	collection, err := uc.collectionRepo.CreateCollectionWithCards(collectionEnt, cards)
 	if err != nil {
 		fmt.Println(err)
+		logrus.Errorf("%w: %v", ErrUnexpected, err)
 		return nil, err
 	}
-
+	logrus.Info("Uploaded successfully")
 	return &entity.CreateMultipleCollectionResponse{
 		Name:        collection.Name,
 		CardsAmount: uint32(len(cards)),

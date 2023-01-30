@@ -431,6 +431,10 @@ func (r *repository) SearchCollectionByName(search string, userId uuid.UUID) ([]
 }
 
 func (r *repository) CreateCollection(collection entity.Collection) (*entity.Collection, error) {
+	panic("Not implemented")
+}
+
+func (r *repository) CreateCollectionWithCards(collection entity.Collection, cards []*entity.Card) (*entity.Collection, error) {
 	tx := r.db.Begin()
 	collectionModel := Collection{
 		Id:        uuid.New(),
@@ -490,7 +494,77 @@ func (r *repository) CreateCollection(collection entity.Collection) (*entity.Col
 		tx.Rollback()
 		return nil, err
 	}
+	cardsModels := []*Card{}
+	for _, card := range cards {
+		cardsModels = append(cardsModels, &Card{
+			Id:         uuid.New(),
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			AuthorId:   collectionModel.AuthorId,
+			Synonyms:   card.Synonyms,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		})
+	}
 
+	err = r.db.Table("card").Create(cardsModels).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	cardUserProgress := []*CardUserProgress{}
+	for _, card := range cardsModels {
+		cardUserProgress = append(cardUserProgress, &CardUserProgress{
+			Id:            uuid.New(),
+			CardId:        card.Id,
+			UserId:        collectionModel.AuthorId,
+			Status:        entity.CardUserProgressType_None,
+			LearningCount: 0,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		})
+	}
+	err = r.db.Table("card_user_progress").Create(cardUserProgress).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	cardMetrics := []*CardMetrics{}
+	for _, card := range cardsModels {
+		cardMetrics = append(cardMetrics, &CardMetrics{
+			Id:        uuid.New(),
+			CardId:    card.Id,
+			Likes:     0,
+			Dislikes:  0,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		})
+	}
+	err = r.db.Table("card_metrics").Create(cardMetrics).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	collectionCards := []*CollectionCards{}
+	for _, card := range cardsModels {
+		collectionCards = append(collectionCards, &CollectionCards{
+			Id:           uuid.New(),
+			CardId:       card.Id,
+			CollectionId: collectionModel.Id,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		})
+	}
+	err = r.db.Table("collection_cards").Create(collectionCards).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	return collectionModel.ToEntity(), nil
 }
 
