@@ -30,6 +30,7 @@ type CollectionRepository interface {
 	SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error)
 	CreateCollection(collection entity.Collection) (*entity.Collection, error)
 	UpdateCollection(collection entity.Collection) error
+	CreateCollectionWithCards(collection entity.Collection, cards []*entity.Card) (*entity.Collection, error)
 
 	GetCollectionMetrics(id uuid.UUID) (*entity.CollectionMetrics, error)
 	GetCollectionUserProgress(id, userId uuid.UUID) (*entity.CollectionUserProgress, error)

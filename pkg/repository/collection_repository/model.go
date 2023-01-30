@@ -201,3 +201,42 @@ func (c CardForUser) ToArrayEntity(cards []*CardForUser) []*entity.CardForUser {
 	}
 	return res
 }
+
+type CardUserProgress struct {
+	Id            uuid.UUID                   `gorm:"primary_key;column:id"`
+	CardId        uuid.UUID                   `gorm:"column:card_id"`
+	UserId        uuid.UUID                   `gorm:"column:user_id"`
+	Status        entity.CardUserProgressType `gorm:"column:status"`
+	LearningCount uint32                      `gorm:"column:learning_count"`
+	CreatedAt     time.Time                   `gorm:"column:created_at"`
+	UpdatedAt     time.Time                   `gorm:"column:updated_at"`
+	DeletedAt     *time.Time                  `gorm:"column:deleted_at"`
+}
+
+func (c *CardUserProgress) ToEntity() *entity.CardUserProgress {
+	return &entity.CardUserProgress{
+		Id:     c.Id,
+		CardId: c.CardId,
+		UserId: c.UserId,
+		Status: c.Status,
+	}
+}
+
+type CardMetrics struct {
+	Id        uuid.UUID  `gorm:"primary_key;column:id"`
+	CardId    uuid.UUID  `gorm:"column:card_id"`
+	Likes     uint32     `gorm:"column:likes"`
+	Dislikes  uint32     `gorm:"column:dislikes"`
+	CreatedAt time.Time  `gorm:"column:created_at"`
+	UpdatedAt time.Time  `gorm:"column:updated_at"`
+	DeletedAt *time.Time `gorm:"column:deleted_at"`
+}
+
+func (c *CardMetrics) ToEntity() *entity.CardMetrics {
+	return &entity.CardMetrics{
+		Id:       c.Id,
+		CardId:   c.CardId,
+		Likes:    c.Likes,
+		Dislikes: c.Dislikes,
+	}
+}
