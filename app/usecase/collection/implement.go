@@ -830,15 +830,6 @@ func (uc *usecase) CreateCollection(collection entity.Collection, cards []*entit
 		return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 	}
 
-	// err = uc.cardRepo.CreateMultipleCards(createdCollection.Id, cards, userId)
-	// if err != nil {
-	// 	if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-	// 		logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 		return ErrNotFound
-	// 	}
-	// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
-	// 	return fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
-	// }
 	logrus.Info("Collection created successfully")
 	return nil
 }
@@ -897,6 +888,40 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 			Definition: rows[rowI][1],
 			Sentence:   rows[rowI][2],
 			ImageUrl:   rows[rowI][3],
+		}
+
+		// Download an image from URL and use GCS url
+		urlGCP := "https://storage.googleapis.com/flashcards-images"
+		if !strings.Contains(rows[rowI][3], urlGCP) {
+			response, err := http.Get(rows[rowI][3])
+			if err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, err
+			}
+			defer response.Body.Close()
+
+			if response.StatusCode != 200 {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Received non 200 response code")
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*50)
+			defer cancel()
+
+			filenameToUpload := "card_images/" + strings.ReplaceAll(rows[rowI][0], " ", "+") + "--" + uuid.NewString()
+			fileURL := "https://storage.googleapis.com/" + uc.bucketName + "/" + uc.envPrefix + "/" + filenameToUpload
+			wc := uc.gcsClient.Bucket(uc.bucketName).Object(uc.envPrefix + "/" + filenameToUpload).NewWriter(ctx)
+			// wc.ACL = []storage.ACLRule{{Entity: storage.AllAuthenticatedUsers, Role: storage.RoleOwner}}
+			if _, err := io.Copy(wc, response.Body); err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", "ErrUnexpected1", err)
+			}
+
+			if err := wc.Close(); err != nil {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", "ErrUnexpected2", err)
+			}
+			card.ImageUrl = fileURL
 		}
 
 		if len(rows[rowI]) >= 5 {
