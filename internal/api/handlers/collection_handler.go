@@ -73,7 +73,7 @@ func (h *handlerCollection) GetRecommendedCollectionsPreview(c *gin.Context) {
 	}
 	size, err := strconv.Atoi(c.Query("size"))
 	if err != nil || size < 1 {
-		size = 5
+		size = 15
 	}
 
 	data, err := h.collectionUsecase.GetRecommendedCollectionsPreview(userCtx.UserId, page, size)

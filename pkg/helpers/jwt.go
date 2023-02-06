@@ -21,7 +21,7 @@ func GenerateJWTToken(user *entity.User) (string, error) {
 		ID:    user.Id.String(),
 		Email: user.Email,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 524).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 8760).Unix(),
 		},
 	}
 
