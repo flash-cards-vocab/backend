@@ -880,6 +880,7 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 		fmt.Println(rowI)
 		// Skip row that does not contain one of mandatory fields
 		if len(rows[rowI]) < 4 {
+			fmt.Println("rows[rowI] Length less than 4")
 			continue
 		}
 		card := &entity.Card{
@@ -900,10 +901,10 @@ func (uc *usecase) UploadCollectionWithFile(userId uuid.UUID, file multipart.Fil
 			}
 			defer response.Body.Close()
 
-			if response.StatusCode != 200 {
-				logrus.Errorf("%w: %v", ErrUnexpected, err)
-				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Received non 200 response code")
-			}
+			// if response.StatusCode != 200 {
+			// 	logrus.Errorf("%w: %v", ErrUnexpected, err)
+			// 	return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Received non 200 response code")
+			// }
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*50)
 			defer cancel()
