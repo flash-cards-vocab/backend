@@ -54,12 +54,12 @@ func (c Card) ToArrayEntity(cards []*Card) []*entity.Card {
 type CardWithOccurence struct {
 	Id         uuid.UUID `gorm:"primary_key;column:id"`
 	Word       string    `gorm:"column:word"`
-	ImageUrl   string    `gorm:"column:imageUrl"`
+	ImageUrl   string    `gorm:"column:image_url"`
 	Definition string    `gorm:"column:definition"`
 	Sentence   string    `gorm:"column:sentence"`
 	Antonyms   string    `gorm:"column:antonyms"`
 	Synonyms   string    `gorm:"column:synonyms"`
-	AuthorId   uuid.UUID `gorm:"column:authorId"`
+	AuthorId   uuid.UUID `gorm:"column:author_id"`
 	Occurence  int       `gorm:"column:occurence"`
 }
 
