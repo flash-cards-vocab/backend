@@ -101,7 +101,7 @@ func (uc *usecase) GetMyCollections(userId uuid.UUID) ([]*entity.UserCollectionR
 		createdDate := time.Date(collection.CreatedAt.Year(),
 			collection.CreatedAt.Month(),
 			collection.CreatedAt.Day(), 0, 0, 0, 0, time.UTC)
-		createdDateFormat := fmt.Sprintf("%v %v, %v", createdDate.Month(), createdDate.Day(), createdDate.Year())
+		createdDateFormat := fmt.Sprintf("%v %v, %v", createdDate.Month().String()[:3], createdDate.Day(), createdDate.Year())
 
 		collectionResponse := &entity.UserCollectionResponse{
 			Id:               collection.Id,
