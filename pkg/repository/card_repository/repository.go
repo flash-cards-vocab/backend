@@ -21,19 +21,21 @@ func New(db *gorm.DB) repositoryIntf.CardRepository {
 }
 
 func (r *repository) CreateSingleCard(card entity.Card) error {
-	data := &Card{
-		Id:         uuid.New(),
-		Word:       card.Word,
-		ImageUrl:   card.ImageUrl,
-		Definition: card.Definition,
-		Sentence:   card.Sentence,
-		Antonyms:   card.Antonyms,
-		Synonyms:   card.Synonyms,
-		AuthorId:   card.AuthorId,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-	return r.db.Table(r.tableName).Create(data).Error
+	return r.db.
+		Table(r.tableName).
+		Create(&Card{
+			Id:         uuid.New(),
+			Word:       card.Word,
+			ImageUrl:   card.ImageUrl,
+			Definition: card.Definition,
+			Sentence:   card.Sentence,
+			Antonyms:   card.Antonyms,
+			Synonyms:   card.Synonyms,
+			AuthorId:   card.AuthorId,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		}).
+		Error
 }
 
 func (r *repository) GetCardsByWord(word string, limit, offset int) ([]*entity.Card, error) {
@@ -215,15 +217,13 @@ func (r *repository) CreateMultipleCards(collectionId uuid.UUID, cards []*entity
 
 func (r *repository) RemoveMultipleCardsFromCollection(cardsToRemove []*entity.CollectionCards) error {
 	for _, card := range cardsToRemove {
-		// err := r.db.
-		// 	Table("collection_cards").
-		// 	Delete(CollectionCards{}).
-		// 	Error
-		err := r.db.Table("collection_cards").
+		err := r.db.
+			Table("collection_cards").
 			Where("collection_id=? AND card_id=? AND deleted_at IS NULL", card.CollectionId, card.CardId).
 			Updates(map[string]interface{}{
 				"deleted_at": time.Now(),
-			}).Error
+			}).
+			Error
 		if err != nil {
 			return err
 		}
@@ -232,13 +232,15 @@ func (r *repository) RemoveMultipleCardsFromCollection(cardsToRemove []*entity.C
 }
 
 func (r *repository) AssignCardToCollection(collectionId uuid.UUID, cardId uuid.UUID) error {
-	collectionCard := &CollectionCards{
-		CollectionId: collectionId,
-		CardId:       cardId,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-	return r.db.Table("collection_cards").Create(collectionCard).Error
+	return r.db.
+		Table("collection_cards").
+		Create(&CollectionCards{
+			CollectionId: collectionId,
+			CardId:       cardId,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}).
+		Error
 }
 
 func (r *repository) KnowCard(collectionId, cardId, userId uuid.UUID) error {

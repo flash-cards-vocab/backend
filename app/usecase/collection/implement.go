@@ -70,12 +70,18 @@ func (uc *usecase) GetMyCollections(userId uuid.UUID) ([]*entity.UserCollectionR
 
 		collectionUserProgress, err := uc.collectionRepo.GetCollectionUserProgress(collection.Id, userId)
 		if err != nil {
-			if errors.Is(err, repositoryIntf.ErrCollectionNotFound) {
-				return nil, ErrNotFound
+			if errors.Is(err, repositoryIntf.ErrCollectionUserProgressNotFound) {
+				err = uc.collectionRepo.CreateCollectionUserProgress(collection.Id, userId)
+				if err != nil {
+					logrus.Errorf("%w: %v", ErrUnexpected, err)
+					return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
+				}
+			} else {
+				logrus.Errorf("%w: %v", ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 			}
-			logrus.Errorf("%w: %v", ErrUnexpected, err)
-			return nil, fmt.Errorf("%w: %v", ErrUnexpected, "Unexpected error")
 		}
+
 		collectionUserMetrics, err := uc.collectionRepo.GetCollectionUserMetrics(collection.Id, userId)
 		if err != nil {
 			if errors.Is(err, repositoryIntf.ErrCollectionUserMetricsNotFound) {

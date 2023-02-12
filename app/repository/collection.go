@@ -28,7 +28,6 @@ type CollectionRepository interface {
 	CollectionDislikeInteraction(id, userId uuid.UUID, isDisliked bool) error
 	ViewCollection(id, userId uuid.UUID) error
 	SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error)
-	CreateCollection(collection entity.Collection) (*entity.Collection, error)
 	UpdateCollection(collection entity.Collection) error
 	CreateCollectionWithCards(collection entity.Collection, cards []*entity.Card) (*entity.Collection, error)
 
