@@ -20,12 +20,6 @@ func New(db *gorm.DB) repositoryIntf.CollectionRepository {
 
 func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, error) {
 	datas := []Collection{}
-	// Raw(`
-	// SELECT * FROM collection
-	// WHERE author_id = ?
-	// AND deleted_at IS null
-	// `, userId).
-
 	err := r.db.
 		Table("collection").
 		Where("author_id=? AND deleted_at IS NULL", userId).
@@ -42,57 +36,47 @@ func (r *repository) GetMyCollections(userId uuid.UUID) ([]*entity.Collection, e
 }
 
 func (r *repository) GetUserCollectionsStatistics(userId uuid.UUID) (*entity.UserCollectionStatistics, error) {
-	var collectionsCreated uint32
+	var collectionsCreated int64
 	err := r.db.
 		Table("collection").
 		Where("author_id=? AND deleted_at IS null", userId).
-		Scan(&collectionsCreated).
+		Count(&collectionsCreated).
 		Error
-		// Raw(`
-		// 	SELECT COUNT(*) FROM collection
-		// 	WHERE author_id=?
-		// 	AND deleted_at IS null
-		// `, userId).
 	if err != nil {
 		return nil, err
 	}
 
 	return &entity.UserCollectionStatistics{
-		CollectionsCreated: collectionsCreated,
+		CollectionsCreated: uint32(collectionsCreated),
 	}, nil
 }
 
 func (r *repository) GetTotalCardsInCollection(collectionId uuid.UUID) (int, error) {
-	var total *int
+	var total int64
 	err := r.db.
-		Raw(`
-			SELECT COUNT(card.*) FROM card
-			INNER JOIN collection_cards ON collection_cards.card_id = card.id
-			INNER JOIN collection ON collection_cards.collection_id = collection.id
-			WHERE collection.id=?
-			AND card.deleted_at IS null
-			AND collection_cards.deleted_at IS null
-			AND collection.deleted_at IS null
-		`, collectionId).
-		Scan(&total).
+		Table("card").
+		Select("COUNT(1)").
+		Joins("INNER JOIN collection_cards AS cc ON cc.card_id = card.id").
+		Joins("INNER JOIN collection AS c ON cc.collection_id = c.id").
+		Where("c.id = ?", collectionId).
+		Where("c.deleted_at IS NULL").
+		Where("cc.deleted_at IS NULL").
+		Where("card.deleted_at IS NULL").
+		Count(&total).
 		Error
 	if err != nil {
 		return 0, err
 	}
-
-	return *total, nil
+	return int(total), nil
 }
 
 func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID, limit, offset int) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection
-			WHERE author_id <> ? 
-			AND deleted_at IS null 
-			LIMIT ?
-			OFFSET ?
-		`, userId, limit, offset).
+		Table("collection").
+		Where("author_id <> ? AND deleted_at IS null", userId).
+		Limit(limit).
+		Offset(offset).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -106,23 +90,18 @@ func (r *repository) GetRecommendedCollectionsPreview(userId uuid.UUID, limit, o
 }
 
 func (r *repository) GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
-	datas := []Collection{}
+	result := []Collection{}
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection coll
-			INNER JOIN public.collection_user_metrics coll_um 
-			ON coll_um.collection_id = coll.id
-			WHERE author_id <> ? 
-			AND coll_um.liked=TRUE
-			AND deleted_at IS null
-		`, userId).
-		Find(&datas).
+		Table("collection coll").
+		Joins("INNER JOIN collection_user_metrics coll_um ON coll_um.collection_id = coll.id").
+		Where("author_id <> ? AND coll_um.liked = TRUE AND deleted_at IS null", userId).
+		Find(&result).
 		Error
 	if err != nil {
 		return nil, err
 	}
 	resp := []*entity.Collection{}
-	for _, data := range datas {
+	for _, data := range result {
 		resp = append(resp, data.ToEntity())
 	}
 	return resp, nil
@@ -131,15 +110,10 @@ func (r *repository) GetLikedCollectionsPreview(userId uuid.UUID) ([]*entity.Col
 func (r *repository) GetStarredCollectionsPreview(userId uuid.UUID) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection coll
-			INNER JOIN public.collection_user_metrics coll_um 
-			ON coll_um.collection_id = coll.id
-			WHERE author_id <> ? 
-			AND coll_um.starred=TRUE
-			AND deleted_at IS null
-		`, userId).
-		Find(&datas).
+		Table("collection coll").
+		Joins("INNER JOIN collection_user_metrics coll_um ON coll_um.collection_id = coll.id").
+		Where("author_id <> ? AND coll_um.starred=TRUE AND deleted_at IS null", userId).
+		Scan(&datas).
 		Error
 	if err != nil {
 		return nil, err
@@ -169,7 +143,8 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 			Updates(map[string]interface{}{
 				"starred":    false,
 				"updated_at": time.Now(),
-			}).Error
+			}).
+			Error
 		if err != nil {
 			return err
 		}
@@ -180,7 +155,8 @@ func (r *repository) StarCollectionById(id, userId uuid.UUID) error {
 			Updates(map[string]interface{}{
 				"starred":    true,
 				"updated_at": time.Now(),
-			}).Error
+			}).
+			Error
 		if err != nil {
 			return err
 		}
@@ -200,7 +176,10 @@ func (r *repository) CreateCollectionUserMetrics(id, userId uuid.UUID) error {
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
-	err := r.db.Table("collection_user_metrics").Create(collUserMetrics).Error
+	err := r.db.
+		Table("collection_user_metrics").
+		Create(collUserMetrics).
+		Error
 	if err != nil {
 		return err
 	}
@@ -218,7 +197,10 @@ func (r *repository) CreateCollectionUserProgress(id, userId uuid.UUID) error {
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
-	err := r.db.Table("collection_user_progress").Create(collUserProgress).Error
+	err := r.db.
+		Table("collection_user_progress").
+		Create(collUserProgress).
+		Error
 	if err != nil {
 		return err
 	}
@@ -397,7 +379,8 @@ func (r *repository) ViewCollection(id, userId uuid.UUID) error {
 		Updates(map[string]interface{}{
 			"views":      metrics.Views + 1,
 			"updated_at": time.Now(),
-		}).Error
+		}).
+		Error
 	if err != nil {
 		return err
 	}
@@ -406,32 +389,24 @@ func (r *repository) ViewCollection(id, userId uuid.UUID) error {
 
 func (r *repository) SearchCollectionByName(search string, userId uuid.UUID) ([]*entity.Collection, error) {
 
-	datas := []*Collection{}
+	results := []*Collection{}
 	err := r.db.
-		Raw(`
-			SELECT coll.* FROM collection coll
-			INNER JOIN collection_metrics cm on coll.id = cm.collection_id 
-			WHERE lower(coll.name) like lower(?) 
-			AND coll.deleted_at IS null
-			AND coll.author_id <> ?
-			AND coll.deleted_at IS null
-			order by cm.likes limit 10
-		`, "%"+search+"%", userId).
-		Find(&datas).
+		Table("collection coll").
+		Joins("INNER JOIN collection_metrics cm on coll.id = cm.collection_id").
+		Where("lower(coll.name) like lower(?) AND coll.author_id <> ? AND coll.deleted_at IS null", search, userId).
+		Order("cm.likes").
+		Limit(20).
+		Scan(&results).
 		Error
 	if err != nil {
 		return nil, err
 	}
 	resp := []*entity.Collection{}
-	for _, data := range datas {
+	for _, data := range results {
 		resp = append(resp, data.ToEntity())
 	}
 	return resp, nil
 
-}
-
-func (r *repository) CreateCollection(collection entity.Collection) (*entity.Collection, error) {
-	panic("Not implemented")
 }
 
 func (r *repository) CreateCollectionWithCards(collection entity.Collection, cards []*entity.Card) (*entity.Collection, error) {
@@ -598,8 +573,6 @@ func (r *repository) GetCollectionUserProgress(id, userId uuid.UUID) (*entity.Co
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// return nil, repositoryIntf.ErrCollectionUserProgressNotFound
-
 			return &entity.CollectionUserProgress{ //returning null struct because user didn't start learning with the collection yet and should see all zeros
 				CollectionId: id,
 				UserId:       userId,
@@ -622,8 +595,6 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// return nil, repositoryIntf.ErrCollectionUserMetricsNotFound
-
 			return &entity.CollectionUserMetrics{
 				CollectionId: id,
 				Liked:        false,
@@ -641,11 +612,8 @@ func (r *repository) GetCollectionUserMetrics(id, userId uuid.UUID) (*entity.Col
 func (r *repository) GetCollection(id uuid.UUID) (*entity.Collection, error) {
 	data := &Collection{}
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection
-			WHERE id = ?
-			AND deleted_at IS null
-		`, id).
+		Table("collection").
+		Where("id = ? AND deleted_at IS null", id).
 		First(&data).
 		Error
 	if err != nil {
@@ -657,45 +625,30 @@ func (r *repository) GetCollection(id uuid.UUID) (*entity.Collection, error) {
 func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, offset int) (*entity.CardForUserPagination, error) {
 	cards := []*CardForUser{}
 	err := r.db.
-		Raw(`
-			SELECT card.* FROM card
-			INNER JOIN collection_cards ON collection_cards.card_id = card.id
-			INNER JOIN collection ON collection_cards.collection_id = collection.id
-			WHERE collection.id=?
-			AND card.deleted_at IS null
-			AND collection_cards.deleted_at IS null
-			AND collection.deleted_at IS null
-			LIMIT ?
-			OFFSET ?
-			`, collectionId, limit, offset).
+		Table("card").
+		Select("card.*").
+		Joins("INNER JOIN collection_cards ON collection_cards.card_id = card.id").
+		Joins("INNER JOIN collection ON collection_cards.collection_id = collection.id").
+		Where("collection.id = ? AND card.deleted_at IS NULL AND collection_cards.deleted_at IS NULL AND collection.deleted_at IS NULL", collectionId).
+		Limit(limit).
+		Offset(offset).
 		Find(&cards).
 		Error
-
-	// Raw(`
-	// 	SELECT card.*, card_user_progress.status FROM card
-	// 	INNER JOIN collection_cards ON collection_cards.card_id = card.id
-	// 	INNER JOIN collection ON collection_cards.collection_id = collection.id
-	// 	INNER JOIN card_user_progress ON card_user_progress.card_id = card.id AND card_user_progress.user_id = ?
-	// 	WHERE collection.id=?
-	// 	--AND card.deleted_at IS null
-	// 	--AND collection.deleted_at IS null
-	// 	LIMIT ?
-	// 	OFFSET ?
-	// `, userId, collectionId, limit, offset).
 	if err != nil {
 		return nil, err
 	}
 
-	var total int
-	err = r.db.Raw(`
-		SELECT COUNT(*) FROM card
-		INNER JOIN collection_cards ON collection_cards.card_id = card.id
-		INNER JOIN collection ON collection_cards.collection_id = collection.id
-		WHERE collection.id=?
-		AND card.deleted_at IS null
-		AND collection_cards.deleted_at IS null
-		AND collection.deleted_at IS null
-	`, collectionId).First(&total).Error
+	var total int64
+	err = r.db.
+		Table("card").
+		Joins("INNER JOIN collection_cards ON collection_cards.card_id = card.id").
+		Joins("INNER JOIN collection ON collection_cards.collection_id = collection.id").
+		Where("collection.id = ?", collectionId).
+		Where("card.deleted_at IS NULL").
+		Where("collection_cards.deleted_at IS NULL").
+		Where("collection.deleted_at IS NULL").
+		Count(&total).
+		Error
 
 	res := []*entity.CardForUser{}
 	for _, card := range cards {
@@ -716,7 +669,7 @@ func (r *repository) GetCollectionCards(collectionId, userId uuid.UUID, limit, o
 		CardForUser: CardForUser{}.ToArrayEntity(cards),
 		Page:        limit,
 		Size:        offset,
-		Total:       total,
+		Total:       int(total),
 	}
 	return data, nil
 
@@ -738,13 +691,12 @@ func (r *repository) UpdateCollection(collection entity.Collection) error {
 func (r *repository) SearchCollectionByNameForUnregistered(search string) ([]*entity.Collection, error) {
 	datas := []*Collection{}
 	err := r.db.
-		Raw(`
-			SELECT coll.* FROM collection coll
-			INNER JOIN collection_metrics cm on coll.id = cm.collection_id 
-			WHERE lower(coll.name) like lower(?) 
-			AND coll.deleted_at IS null
-			order by cm.likes limit 10
-		`, "%"+search+"%").
+		Table("collection").
+		Select("collection.*").
+		Joins("INNER JOIN collection_metrics ON collection.id = collection_metrics.collection_id").
+		Where("lower(collection.name) LIKE lower(?) AND collection.deleted_at IS NULL", "%"+search+"%").
+		Order("collection_metrics.likes").
+		Limit(10).
 		Find(&datas).
 		Error
 	if err != nil {
@@ -760,35 +712,35 @@ func (r *repository) SearchCollectionByNameForUnregistered(search string) ([]*en
 func (r *repository) GetCollectionCardsForUnregistered(collectionId uuid.UUID, limit int, offset int) (*entity.CardForUserPagination, error) {
 	cards := []*CardForUser{}
 	err := r.db.
-		Raw(`
-			SELECT card.*, card_user_progress.status FROM card
-			INNER JOIN collection_cards ON collection_cards.card_id = card.id
-			INNER JOIN collection ON collection_cards.collection_id = collection.id
-			INNER JOIN card_user_progress ON card_user_progress.card_id = card.id
-			WHERE collection.id=?
-			AND card.deleted_at IS null
-			AND collection_cards.deleted_at IS null
-			AND collection.deleted_at IS null
-			AND card_user_progress.deleted_at IS null
-			LIMIT ?
-			OFFSET ?
-		`, collectionId, limit, offset).
+		Table("card").
+		Select("card.*, card_user_progress.status").
+		Joins("INNER JOIN collection_cards ON collection_cards.card_id = card.id").
+		Joins("INNER JOIN collection ON collection_cards.collection_id = collection.id").
+		Joins("INNER JOIN card_user_progress ON card_user_progress.card_id = card.id").
+		Where(`collection.id = ? 
+			AND card.deleted_at IS null 
+			AND collection_cards.deleted_at IS null 
+			AND collection.deleted_at IS null 
+			AND card_user_progress.deleted_at IS null`, collectionId).
+		Limit(limit).
+		Offset(offset).
 		Find(&cards).
 		Error
 	if err != nil {
 		return nil, err
 	}
 
-	var total int
-	err = r.db.Raw(`
-		SELECT COUNT(*) FROM card
-		INNER JOIN collection_cards ON collection_cards.card_id = card.id
-		INNER JOIN collection ON collection_cards.collection_id = collection.id
-		WHERE collection.id=?
-		AND card.deleted_at IS null
-		AND collection_cards.deleted_at IS null
-		AND collection.deleted_at IS null
-	`, collectionId).First(&total).Error
+	var total int64
+	err = r.db.
+		Table("card").
+		Joins("INNER JOIN collection_cards ON collection_cards.card_id = card.id").
+		Joins("INNER JOIN collection ON collection_cards.collection_id = collection.id").
+		Where("collection.id = ? AND card.deleted_at IS null AND collection_cards.deleted_at IS null AND collection.deleted_at IS null", collectionId).
+		Count(&total).
+		Error
+	if err != nil {
+		return nil, err
+	}
 
 	res := []*entity.CardForUser{}
 	for _, card := range cards {
@@ -809,7 +761,7 @@ func (r *repository) GetCollectionCardsForUnregistered(collectionId uuid.UUID, l
 		CardForUser: CardForUser{}.ToArrayEntity(cards),
 		Page:        limit,
 		Size:        offset,
-		Total:       total,
+		Total:       int(total),
 	}
 	return data, nil
 }
@@ -817,12 +769,10 @@ func (r *repository) GetCollectionCardsForUnregistered(collectionId uuid.UUID, l
 func (r *repository) GetRecommendedCollectionsPreviewForUnregistered(limit, offset int) ([]*entity.Collection, error) {
 	datas := []Collection{}
 	err := r.db.
-		Raw(`
-			SELECT * FROM collection
-			WHERE deleted_at IS null 
-			LIMIT ?
-			OFFSET ?
-		`, limit, offset).
+		Table("collection").
+		Where("deleted_at IS null").
+		Limit(limit).
+		Offset(offset).
 		Find(&datas).
 		Error
 	if err != nil {
